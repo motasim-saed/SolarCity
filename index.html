@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مدينة الطاقة الشمسية - لحياة أكثر إشراقاً</title>
+    <meta name="description" content="مدينة الطاقة الشمسية - الخبراء في تصميم وتركيب وصيانة أنظمة الطاقة الشمسية بجودة عالمية.">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Swiper CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/style.css">
+    <!-- Appwrite Web SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/appwrite@13.0.0"></script>
+</head>
+<body>
+
+    <!-- Header & Navigation -->
+    <header class="header">
+        <div class="container nav-container">
+            <a href="#" class="logo">
+                <i class="fa-solid fa-sun"></i>
+                <span> مدينة الطاقة الشمسية </span>
+            </a>
+            <nav class="navbar">
+                <ul class="nav-menu">
+                    <li><a href="#home" class="nav-link active">الرئيسية</a></li>
+                    <li><a href="#about" class="nav-link">من نحن</a></li>
+                    <li><a href="#projects" class="nav-link">مشاريعنا</a></li>
+                    <li><a href="#contact" class="nav-link">تواصل معنا</a></li>
+                    <li><a href="admin.html" class="nav-link" style="color: var(--primary-color);"><i class="fa-solid fa-gear"></i> الإدارة</a></li>
+                </ul>
+                <div class="hamburger">
+                    <span class="bar"></span>
+                    <span class="bar"></span>
+                    <span class="bar"></span>
+                </div>
+            </nav>
+            <a href="#contact" class="btn btn-primary nav-btn">احصل على عرض سعر</a>
+        </div>
+    </header>
+
+    <!-- Hero Section (Slider) -->
+    <section id="home" class="hero">
+        <div class="swiper hero-swiper">
+            <div class="swiper-wrapper" id="dynamic-hero-slides">
+                <!-- Slides will be loaded dynamically from Appwrite -->
+                <div class="swiper-slide" style="background-image: url('https://images.unsplash.com/photo-1509391366360-2e959784a276?q=80&w=2072&auto=format&fit=crop');">
+                    <div class="hero-overlay"></div>
+                    <div class="container hero-content" style="text-align: center;">
+                        <h1 class="hero-title" style="font-size: 2.2rem; text-align: center;">جاري تحميل البانر الإعلاني...</h1>
+                        <p class="hero-subtitle" style="text-align: center;">يرجى الانتظار لحين جلب البيانات من الخادم</p>
+                    </div>
+                </div>
+            </div>
+            <!-- Add Pagination -->
+            <div class="swiper-pagination"></div>
+            <!-- Add Navigation -->
+            <div class="swiper-button-next"></div>
+            <div class="swiper-button-prev"></div>
+        </div>
+
+        <!-- Floating Statistics -->
+        <div class="hero-stats-wrapper">
+            <div class="container">
+                <div class="hero-stats">
+                    <div class="stat-card glass-panel">
+                        <i class="fa-solid fa-bolt stat-icon"></i>
+                        <h3>+1500</h3>
+                        <p>مشروع منجز</p>
+                    </div>
+                    <div class="stat-card glass-panel">
+                        <i class="fa-solid fa-leaf stat-icon"></i>
+                        <h3>100%</h3>
+                        <p>طاقة نظيفة</p>
+                    </div>
+                    <div class="stat-card glass-panel">
+                        <i class="fa-solid fa-award stat-icon"></i>
+                        <h3>15 سنة</h3>
+                        <p>خبرة في المجال</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Products & Projects Section (Dynamic) -->
+    <section id="projects" class="services section-padding">
+        <div class="container">
+            <div class="section-title text-center">
+                <span class="subtitle">منتجاتنا ومشاريعنا</span>
+                <h2>اكتشف أحدث منتجاتنا</h2>
+                <p>تصفح أحدث ألواح الطاقة الشمسية، البطاريات، والمشاريع التي قمنا بتنفيذها</p>
+            </div>
+            
+            <!-- Dynamic Category Filters (Shown on all screen sizes, scrollable on mobile) -->
+            <div id="category-filter-container" class="category-filter-wrapper" style="display: none; margin-bottom: 40px; text-align: center;">
+                <div class="category-filter-scroll">
+                    <button id="filter-btn-all" class="filter-btn active" onclick="filterByCategory('all')">الكل</button>
+                    <!-- Other filters will be appended here dynamically -->
+                </div>
+            </div>
+
+            <div id="dynamic-products" class="products-grid">
+                <!-- Data will be loaded here dynamically from Appwrite -->
+                <div class="loading-spinner text-center" style="grid-column: 1 / -1; padding: 40px;">
+                    <i class="fa-solid fa-spinner fa-spin fa-3x" style="color: var(--primary-color);"></i>
+                    <p style="margin-top: 15px;">جاري جلب البيانات من القاعدة...</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section (Why Choose Us) -->
+    <section id="about" class="features section-padding bg-light">
+        <div class="container">
+            <div class="features-content">
+                <div class="features-text">
+                    <span class="subtitle">لماذا مدينة الطاقة؟</span>
+                    <h2>نحن نصنع الفارق في مجال الطاقة المتجددة</h2>
+                    <p>لا نكتفي بتركيب الألواح، بل نقدم لك استشارة فنية دقيقة لضمان تحقيق أعلى عائد على استثمارك.</p>
+                    
+                    <ul class="feature-list">
+                        <li>
+                            <i class="fa-solid fa-check-circle"></i>
+                            <div>
+                                <h4>جودة عالمية</h4>
+                                <p>نستخدم أفضل المكونات والألواح المعتمدة عالمياً.</p>
+                            </div>
+                        </li>
+                        <li>
+                            <i class="fa-solid fa-check-circle"></i>
+                            <div>
+                                <h4>فريق هندسي محترف</h4>
+                                <p>مهندسون وفنيون ذوو خبرة طويلة في تصميم وتركيب الأنظمة.</p>
+                            </div>
+                        </li>
+                        <li>
+                            <i class="fa-solid fa-check-circle"></i>
+                            <div>
+                                <h4>ضمان حقيقي</h4>
+                                <p>نقدم ضمانات طويلة المدى على الأجهزة والتركيبات تصل لـ 25 عاماً.</p>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+                
+            </div>
+        </div>
+    </section>
+
+    <!-- Call to Action Section -->
+    <section class="cta section-padding">
+        <div class="container text-center">
+            <h2>هل أنت مستعد للانتقال إلى الطاقة النظيفة؟</h2>
+            <p>تواصل معنا اليوم وسيقوم فريقنا بتقديم دراسة جدوى مبدئية لمشروعك مجاناً.</p>
+            <a href="#contact" class="btn btn-primary btn-large">تواصل معنا الآن</a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer id="contact" class="footer">
+        <div class="container footer-content">
+            <div class="footer-col">
+                <a href="#" class="logo footer-logo">
+                    <i class="fa-solid fa-sun"></i>
+                    <span>مدينة الطاقة</span>
+                </a>
+                <p>الشركة الرائدة في مجال تقديم حلول الطاقة الشمسية المتكاملة والمستدامة للمنازل والمنشآت التجارية.</p>
+                <div class="social-links">
+                    <a href="#"><i class="fa-brands fa-facebook-f"></i></a>
+                    <a href="#"><i class="fa-brands fa-twitter"></i></a>
+                    <a href="#"><i class="fa-brands fa-instagram"></i></a>
+                    <a href="#"><i class="fa-brands fa-linkedin-in"></i></a>
+                </div>
+            </div>
+            
+            <div class="footer-col">
+                <h3>روابط سريعة</h3>
+                <ul>
+                    <li><a href="#home">الرئيسية</a></li>
+                    <li><a href="#about">من نحن</a></li>
+                    <li><a href="#services">خدماتنا</a></li>
+                    <li><a href="#projects">مشاريعنا</a></li>
+                </ul>
+            </div>
+            
+            <div class="footer-col">
+                <h3>تواصل معنا</h3>
+                <ul class="contact-info">
+                    <li><i class="fa-solid fa-location-dot"></i> شارع الملك فهد، الرياض، المملكة العربية السعودية</li>
+                    <li><i class="fa-solid fa-phone"></i> +966 50 000 0000</li>
+                    <li><i class="fa-solid fa-envelope"></i> info@solar-city.com</li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <div class="container">
+                <p>&copy; 2026 مدينة الطاقة الشمسية. جميع الحقوق محفوظة.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Product Details Modal -->
+    <div id="productModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <div class="modal-body">
+                <div class="modal-gallery">
+                    <img id="modalMainImg" src="" alt="صورة المنتج الرئيسية" class="modal-main-img">
+                    <video id="modalMainVideo" src="" controls class="modal-main-img" style="display: none; object-fit: cover;"></video>
+                    <div id="modalThumbnails" class="modal-thumbnails"></div>
+                </div>
+                <div class="modal-info">
+                    <h2 id="modalTitle"></h2>
+                    <span id="modalType" class="product-type"></span>
+                    <span id="modalCategory" class="product-category" style="position:static; margin-bottom:10px; display:inline-block;"></span>
+                    <div id="modalPrice" class="product-price" style="margin: 15px 0;"></div>
+                    <p id="modalDesc" class="product-desc" style="white-space: pre-wrap; margin-bottom: 20px;"></p>
+                    <a id="modalWhatsappBtn" href="#" target="_blank" class="btn btn-primary" style="background-color: #25D366; border-color: #25D366; display: flex; align-items: center; justify-content: center; gap: 10px;">
+                        <i class="fa-brands fa-whatsapp" style="font-size: 1.5em;"></i> تواصل لطلب المنتج
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Swiper JS -->
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+    <!-- Appwrite Config -->
+    <script src="js/config.js"></script>
+    <!-- Custom JS -->
+    <script src="js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة التحكم - مدينة الطاقة الشمسية</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom Admin CSS -->
+    <link rel="stylesheet" href="css/admin.css">
+    <!-- Appwrite Web SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/appwrite@13.0.0"></script>
+</head>
+<body>
+
+    <div class="admin-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <i class="fa-solid fa-sun logo-icon"></i>
+                <h2>لوحة التحكم</h2>
+            </div>
+            <ul class="sidebar-menu">
+                <li class="active" id="tabProductsBtn"><a href="#" onclick="switchTab('products')"><i class="fa-solid fa-box"></i> المنتجات والمشاريع</a></li>
+                <li id="tabSlidesBtn"><a href="#" onclick="switchTab('slides')"><i class="fa-solid fa-images"></i> البانر الإعلاني (السلايدر)</a></li>
+                <li><a href="index.html"><i class="fa-solid fa-globe"></i> زيارة الموقع</a></li>
+            </ul>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="top-header">
+                <h1>إدارة محتوى مدينة الطاقة الشمسية</h1>
+            </header>
+
+            <div class="content-wrapper">
+                <!-- Products Tab Content -->
+                <div id="productsTabContent">
+                    <!-- Add New Item Form -->
+                    <section class="form-section glass-panel">
+                        <h2><i class="fa-solid fa-plus"></i> إضافة عنصر جديد</h2>
+                        <form id="addItemForm" class="admin-form">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="name">الاسم</label>
+                                    <input type="text" id="name" required placeholder="مثال: لوح شمسي 500 واط">
+                                </div>
+                                <div class="form-group">
+                                    <label for="type">النوع</label>
+                                    <input type="text" id="type" required placeholder="مثال: Mono-crystalline">
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="category">القسم</label>
+                                    <select id="category" required>
+                                        <option value="" disabled selected>اختر القسم...</option>
+                                        <option value="ألواح شمسية">ألواح شمسية </option>
+                                        <option value="بطاريات">بطاريات </option>
+                                        <option value="محولات">محولات </option>
+                                        <option value="منظومات شمسية">منظومات شمسية </option>
+                                        <option value="أدوات كهربائية">أدوات كهربائية</option>
+                                        <option value="أدوات منزلية">أدوات منزلية</option>
+                                        <option value="إنارة شوارع ولمبات محمولة">إنارة شوارع ولمبات محمولة</option>
+                                        <option value="مشاريع منجزة">مشاريع منجزة</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="newPrice">السعر الجديد </label>
+                                    <input type="number" id="newPrice"  placeholder="0.00">
+                                </div>
+                                <div class="form-group">
+                                    <label for="oldPrice">السعر القديم </label>
+                                    <input type="number" id="oldPrice" placeholder="0.00">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="description">الوصف</label>
+                                <textarea id="description" rows="4" required placeholder="اكتب تفاصيل ومواصفات المنتج هنا..."></textarea>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="mainMedia">الوسائط الرئيسية (صورة أو فيديو يظهر في الواجهة)</label>
+                                    <div class="file-upload-wrapper">
+                                        <input type="file" id="mainMedia" accept="image/*,video/*" required>
+                                    </div>
+                                    <div id="mainMediaPreview" class="image-preview-container" style="margin-top: 10px;"></div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="additionalMedia">الصور الإضافية لكل منتج (تظهر عند الضغط على التفاصيل)</label>
+                                    <div class="file-upload-wrapper">
+                                        <input type="file" id="additionalMedia" multiple accept="image/*">
+                                    </div>
+                                    <div id="additionalMediaPreview" class="image-preview-container" style="margin-top: 10px;"></div>
+                                </div>
+                            </div>
+
+                            <div class="form-actions" style="display: flex; gap: 15px; align-items: center; margin-top: 20px;">
+                                <button type="submit" class="btn btn-primary btn-submit" id="submitBtn" style="margin: 0;">
+                                    <span>إضافة للقاعدة</span>
+                                    <i class="fa-solid fa-spinner fa-spin" style="display: none;"></i>
+                                </button>
+                                <button type="button" class="btn btn-secondary" id="cancelEditBtn" style="display: none; background-color: #343a40; border-color: #343a40; color: #fff; margin: 0;">
+                                    إلغاء التعديل
+                                </button>
+                            </div>
+                        </form>
+                    </section>
+
+                    <!-- Items List -->
+                    <section class="items-list-section">
+                        <h2><i class="fa-solid fa-list"></i> العناصر المضافة</h2>
+                        <div class="table-responsive glass-panel">
+                            <table class="admin-table">
+                                <thead>
+                                    <tr>
+                                        <th>الصورة</th>
+                                        <th>الاسم</th>
+                                        <th>القسم</th>
+                                        <th>السعر</th>
+                                        <th>إجراءات</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="itemsTableBody">
+                                    <!-- Data will be populated here via Appwrite -->
+                                    <tr>
+                                        <td colspan="5" class="text-center">جاري تحميل البيانات...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </section>
+                </div>
+
+                <!-- Slides Tab Content -->
+                <div id="slidesTabContent" style="display: none;">
+                    <!-- Add New Slide Form -->
+                    <section class="form-section glass-panel">
+                        <h2><i class="fa-solid fa-plus"></i> إضافة بانر جديد للواجهة</h2>
+                        <form id="addSlideForm" class="admin-form">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="slideTitle">العنوان الرئيسي</label>
+                                    <input type="text" id="slideTitle" required placeholder="مثال: استثمر في طاقة المستقبل">
+                                </div>
+                                <div class="form-group">
+                                    <label for="slideCategory">الارتباط بالتصنيف (الزر يوجه لهذا القسم)</label>
+                                    <select id="slideCategory" required>
+                                        <option value="" disabled selected>اختر القسم للتوجيه إليه...</option>
+                                        <option value="ألواح شمسية">ألواح شمسية</option>
+                                        <option value="بطاريات">بطاريات</option>
+                                        <option value="محولات">محولات</option>
+                                        <option value="منظومات شمسية">منظومات شمسية</option>
+                                        <option value="أدوات كهربائية">أدوات كهربائية</option>
+                                        <option value="أدوات منزلية">أدوات منزلية</option>
+                                        <option value="إنارة شوارع ولمبات محمولة">إنارة شوارع ولمبات محمولة</option>
+                                        <option value="مشاريع منجزة">مشاريع منجزة</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="slideDesc">الوصف المكتوب تحت العنوان</label>
+                                <textarea id="slideDesc" rows="3" required placeholder="اكتب وصفاً جذاباً للبانر الإعلاني هنا..."></textarea>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="slideMedia">الوسائط الرئيسية (صورة أو فيديو يظهر في البانر)</label>
+                                <div class="file-upload-wrapper">
+                                    <input type="file" id="slideMedia" accept="image/*,video/*" required>
+                                </div>
+                                <div id="slideMediaPreview" class="image-preview-container" style="margin-top: 10px;"></div>
+                            </div>
+
+                            <div class="form-actions" style="display: flex; gap: 15px; align-items: center; margin-top: 20px;">
+                                <button type="submit" class="btn btn-primary btn-submit" id="slideSubmitBtn" style="margin: 0;">
+                                    <span>إضافة للبانر</span>
+                                    <i class="fa-solid fa-spinner fa-spin" style="display: none;"></i>
+                                </button>
+                            </div>
+                        </form>
+                    </section>
+
+                    <!-- Slides List -->
+                    <section class="items-list-section">
+                        <h2><i class="fa-solid fa-list"></i> البانرات المضافة</h2>
+                        <div class="table-responsive glass-panel">
+                            <table class="admin-table">
+                                <thead>
+                                    <tr>
+                                        <th>الوسيط</th>
+                                        <th>العنوان</th>
+                                        <th>الارتباط بالتصنيف</th>
+                                        <th>إجراءات</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="slidesTableBody">
+                                    <tr>
+                                        <td colspan="4" class="text-center">جاري تحميل البانرات...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Appwrite Config and Logic -->
+    <script src="js/config.js"></script>
+    <script src="js/admin.js"></script>
+</body>
+</html>
