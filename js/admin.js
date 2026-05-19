@@ -26,10 +26,24 @@ const slideMediaInput = document.getElementById('slideMedia');
 const slideMediaPreview = document.getElementById('slideMediaPreview');
 const slideSubmitBtn = document.getElementById('slideSubmitBtn');
 const slidesTableBody = document.getElementById('slidesTableBody');
+const cancelSlideEditBtn = document.getElementById('cancelSlideEditBtn');
+
+// New DOM Elements for Media Managers
+const productMediaManager = document.getElementById('productMediaManager');
+const productMediaGrid = document.getElementById('productMediaGrid');
+const slideMediaManager = document.getElementById('slideMediaManager');
+const slideMediaGrid = document.getElementById('slideMediaGrid');
+
+// Lightbox Elements
+const mediaLightbox = document.getElementById('mediaLightbox');
+const lightboxImg = document.getElementById('lightboxImg');
+const lightboxVideo = document.getElementById('lightboxVideo');
 
 // Editing State
 let editingId = null;
 let existingMedia = [];
+let slideEditingId = null;
+let existingSlideMedia = [];
 
 // Tab Switcher
 window.switchTab = function(tabName) {
@@ -51,6 +65,138 @@ window.switchTab = function(tabName) {
         fetchSlides(); // Fetch slides when tab is opened
     }
 };
+
+// --- LIGHTBOX GALLERY VIEW ---
+window.openLightbox = function(mediaUrl) {
+    if (!mediaUrl) return;
+    const isVideo = mediaUrl.includes('type=video');
+    
+    if (isVideo) {
+        lightboxVideo.src = mediaUrl;
+        lightboxVideo.style.display = 'block';
+        lightboxImg.style.display = 'none';
+        lightboxVideo.play().catch(() => {});
+    } else {
+        lightboxImg.src = mediaUrl;
+        lightboxImg.style.display = 'block';
+        lightboxVideo.style.display = 'none';
+        lightboxVideo.pause();
+    }
+    mediaLightbox.classList.add('active');
+};
+
+window.closeLightbox = function() {
+    mediaLightbox.classList.remove('active');
+    lightboxVideo.pause();
+    lightboxVideo.src = '';
+    lightboxImg.src = '';
+};
+
+// Render Existing Media for Product Editing
+function renderProductMediaManager() {
+    productMediaGrid.innerHTML = '';
+    
+    if (existingMedia.length === 0) {
+        productMediaManager.style.display = 'none';
+        return;
+    }
+    
+    productMediaManager.style.display = 'block';
+    
+    existingMedia.forEach((mediaUrl, index) => {
+        const isVideo = mediaUrl.includes('type=video');
+        const mediaItem = document.createElement('div');
+        mediaItem.className = 'media-manager-item';
+        
+        // Image or video preview tag
+        let previewHtml = '';
+        if (isVideo) {
+            previewHtml = `
+                <video src="${mediaUrl}"></video>
+                <div class="media-type-icon"><i class="fa-solid fa-play"></i></div>
+            `;
+        } else {
+            previewHtml = `<img src="${mediaUrl}" alt="Media ${index + 1}">`;
+        }
+        
+        // Badge for Main vs Additional
+        const isMain = index === 0;
+        const badgeText = isMain ? 'رئيسي' : 'إضافي';
+        const badgeClass = isMain ? 'media-manager-item-badge main-badge' : 'media-manager-item-badge';
+        
+        mediaItem.innerHTML = `
+            ${previewHtml}
+            <div class="${badgeClass}">${badgeText}</div>
+            <button type="button" class="media-manager-item-delete" onclick="deleteExistingProductMedia(${index}); event.stopPropagation();">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <div class="media-manager-item-overlay">
+                <i class="fa-solid fa-magnifying-glass-plus"></i>
+            </div>
+        `;
+        
+        mediaItem.onclick = () => openLightbox(mediaUrl);
+        productMediaGrid.appendChild(mediaItem);
+    });
+}
+
+// Delete media from existing product list
+window.deleteExistingProductMedia = function(index) {
+    if (confirm('هل أنت متأكد من حذف هذا الوسيط من المنتج؟')) {
+        existingMedia.splice(index, 1);
+        renderProductMediaManager();
+    }
+};
+
+// Render Existing Media for Slide Editing
+function renderSlideMediaManager() {
+    slideMediaGrid.innerHTML = '';
+    
+    if (existingSlideMedia.length === 0 || !existingSlideMedia[0]) {
+        slideMediaManager.style.display = 'none';
+        return;
+    }
+    
+    slideMediaManager.style.display = 'block';
+    const mediaUrl = existingSlideMedia[0];
+    const isVideo = mediaUrl.includes('type=video');
+    const mediaItem = document.createElement('div');
+    mediaItem.className = 'media-manager-item';
+    
+    let previewHtml = '';
+    if (isVideo) {
+        previewHtml = `
+            <video src="${mediaUrl}"></video>
+            <div class="media-type-icon"><i class="fa-solid fa-play"></i></div>
+        `;
+    } else {
+        previewHtml = `<img src="${mediaUrl}" alt="Slide Banner">`;
+    }
+    
+    mediaItem.innerHTML = `
+        ${previewHtml}
+        <div class="media-manager-item-badge main-badge">بانر</div>
+        <button type="button" class="media-manager-item-delete" onclick="deleteExistingSlideMedia(); event.stopPropagation();">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+        <div class="media-manager-item-overlay">
+            <i class="fa-solid fa-magnifying-glass-plus"></i>
+        </div>
+    `;
+    
+    mediaItem.onclick = () => openLightbox(mediaUrl);
+    slideMediaGrid.appendChild(mediaItem);
+}
+
+// Delete media from existing slide banner
+window.deleteExistingSlideMedia = function() {
+    if (confirm('هل أنت متأكد من حذف هذا الوسيط من البانر؟')) {
+        existingSlideMedia = [];
+        renderSlideMediaManager();
+        slideMediaInput.required = true; // Slide must have at least one media
+    }
+};
+
 
 // Image/Video Preview handler for Main Media
 mainMediaInput.addEventListener('change', function() {
@@ -215,27 +361,36 @@ addItemForm.addEventListener('submit', async (e) => {
         let mediaUrls = [];
 
         if (editingId) {
-            if (mainMediaInput.files.length > 0 || additionalMediaInput.files.length > 0) {
-                let mainUrl = null;
-                if (mainMediaInput.files.length > 0) {
-                    const mainUrls = await uploadFiles([mainMediaInput.files[0]]);
-                    mainUrl = mainUrls[0];
-                } else {
-                    mainUrl = existingMedia[0] || null;
-                }
-
-                let addUrls = [];
-                if (additionalMediaInput.files.length > 0) {
-                    addUrls = await uploadFiles(Array.from(additionalMediaInput.files));
-                } else {
-                    addUrls = existingMedia.slice(1);
-                }
-
-                mediaUrls = [];
-                if (mainUrl) mediaUrls.push(mainUrl);
-                mediaUrls = mediaUrls.concat(addUrls);
+            let mainUrl = null;
+            if (mainMediaInput.files.length > 0) {
+                const mainUrls = await uploadFiles([mainMediaInput.files[0]]);
+                mainUrl = mainUrls[0];
             } else {
-                mediaUrls = existingMedia;
+                mainUrl = existingMedia[0] || null;
+            }
+
+            let addUrls = [];
+            if (additionalMediaInput.files.length > 0) {
+                addUrls = await uploadFiles(Array.from(additionalMediaInput.files));
+            }
+
+            let keptAdditional = [];
+            if (mainMediaInput.files.length > 0) {
+                keptAdditional = existingMedia;
+            } else {
+                keptAdditional = existingMedia.slice(1);
+            }
+
+            mediaUrls = [];
+            if (mainUrl) mediaUrls.push(mainUrl);
+            mediaUrls = mediaUrls.concat(keptAdditional).concat(addUrls);
+
+            if (mediaUrls.length === 0) {
+                alert('يجب أن يحتوي المنتج على وسيط رئيسي واحد على الأقل.');
+                submitText.innerText = 'تحديث العنصر';
+                submitIcon.style.display = 'none';
+                submitBtn.disabled = false;
+                return;
             }
         } else {
             if (mainMediaInput.files.length === 0) {
@@ -308,6 +463,7 @@ function cancelEdit() {
     existingMedia = [];
     addItemForm.reset();
     clearPreviews();
+    productMediaManager.style.display = 'none';
     
     mainMediaInput.required = true;
     submitText.innerText = 'إضافة للقاعدة';
@@ -342,11 +498,11 @@ async function fetchItems() {
                 : `<img src="${imgSrc}" class="item-img" alt="صورة المنتج" style="width:50px;height:50px;object-fit:cover;border-radius:8px;">`;
 
             tr.innerHTML = `
-                <td>${mediaCellContent}</td>
-                <td>${doc.name}</td>
-                <td>${doc.category}</td>
-                <td>${doc.newPrice} ريال</td>
-                <td>
+                <td class="col-media">${mediaCellContent}</td>
+                <td class="col-name" data-label="الاسم">${doc.name}</td>
+                <td class="col-category" data-label="القسم">${doc.category}</td>
+                <td class="col-price" data-label="السعر">${doc.newPrice} ريال</td>
+                <td class="col-actions">
                     <button class="btn btn-warning" onclick="editItem('${doc.$id}')" style="background-color: #fca311; border-color: #fca311; color: #14213d; padding: 6px 12px; margin-left: 5px;">
                         <i class="fa-solid fa-pen-to-square"></i> تعديل
                     </button>
@@ -370,7 +526,7 @@ window.editItem = function(documentId) {
     if (!doc) return;
 
     editingId = documentId;
-    existingMedia = doc.media || [];
+    existingMedia = doc.media ? [...doc.media] : []; // clone array
 
     document.getElementById('name').value = doc.name;
     document.getElementById('type').value = doc.type || '';
@@ -382,12 +538,8 @@ window.editItem = function(documentId) {
     mainMediaInput.required = false;
     clearPreviews();
     
-    const infoBadge = document.createElement('div');
-    infoBadge.style.color = '#fca311';
-    infoBadge.style.fontSize = '0.9rem';
-    infoBadge.style.marginTop = '5px';
-    infoBadge.innerHTML = `<i class="fa-solid fa-circle-info"></i> تم حفظ الملفات السابقة. قم باختيار ملفات جديدة فقط إذا رغبت في استبدالها.`;
-    mainMediaPreview.appendChild(infoBadge);
+    // Render the gorgeous Product Media Manager
+    renderProductMediaManager();
 
     submitText.innerText = 'تحديث العنصر';
     cancelEditBtn.style.display = 'inline-block';
@@ -415,14 +567,13 @@ window.deleteItem = async function(documentId) {
 
 // --- SLIDER BANNER OPERATIONS ---
 
-// Add Slide form handler
+// Add/Update Slide form handler
 addSlideForm.addEventListener('submit', async (e) => {
     e.preventDefault();
 
     const slideText = slideSubmitBtn.querySelector('span');
-    const slideIcon = slideSubmitBtn.querySelector('i');
     
-    slideText.innerText = 'جاري الحفظ...';
+    slideText.innerText = slideEditingId ? 'جاري التحديث...' : 'جاري الحفظ...';
     slideSubmitBtn.disabled = true;
 
     try {
@@ -430,38 +581,64 @@ addSlideForm.addEventListener('submit', async (e) => {
         const category = document.getElementById('slideCategory').value;
         const description = document.getElementById('slideDesc').value;
 
-        if (slideMediaInput.files.length === 0) {
-            alert('الرجاء اختيار صورة أو فيديو للبانر الإعلاني');
-            return;
+        let mediaUrl = '';
+
+        if (slideEditingId) {
+            if (slideMediaInput.files.length > 0) {
+                const uploadedUrls = await uploadFiles([slideMediaInput.files[0]]);
+                mediaUrl = uploadedUrls[0];
+            } else {
+                mediaUrl = existingSlideMedia[0] || '';
+            }
+        } else {
+            if (slideMediaInput.files.length === 0) {
+                alert('الرجاء اختيار صورة أو فيديو للبانر الإعلاني');
+                return;
+            }
+            const uploadedUrls = await uploadFiles([slideMediaInput.files[0]]);
+            mediaUrl = uploadedUrls[0];
         }
 
-        // Upload banner media
-        const uploadedUrls = await uploadFiles([slideMediaInput.files[0]]);
+        if (!mediaUrl) {
+            alert('الرجاء رفع وسيط للبانر الإعلاني');
+            return;
+        }
 
         const slideData = {
             title: title,
             category: category,
             description: description,
-            media: uploadedUrls // Uniform layout
+            media: mediaUrl
         };
 
-        await databases.createDocument(
-            APPWRITE_CONFIG.DATABASE_ID,
-            APPWRITE_CONFIG.SLIDER_COLLECTION_ID,
-            ID.unique(),
-            slideData
-        );
+        if (slideEditingId) {
+            await databases.updateDocument(
+                APPWRITE_CONFIG.DATABASE_ID,
+                APPWRITE_CONFIG.SLIDER_COLLECTION_ID,
+                slideEditingId,
+                slideData
+            );
+            alert('تم تحديث البانر بنجاح!');
+            cancelSlideEdit();
+        } else {
+            await databases.createDocument(
+                APPWRITE_CONFIG.DATABASE_ID,
+                APPWRITE_CONFIG.SLIDER_COLLECTION_ID,
+                ID.unique(),
+                slideData
+            );
+            alert('تمت إضافة البانر بنجاح!');
+            addSlideForm.reset();
+            slideMediaPreview.innerHTML = '';
+        }
 
-        alert('تمت إضافة البانر بنجاح!');
-        addSlideForm.reset();
-        slideMediaPreview.innerHTML = '';
         fetchSlides();
 
     } catch (error) {
         console.error('Error saving slide:', error);
         alert('حدث خطأ أثناء حفظ البانر: ' + error.message);
     } finally {
-        slideText.innerText = 'إضافة للبانر';
+        slideText.innerText = slideEditingId ? 'تحديث البانر' : 'إضافة للبانر';
         slideSubmitBtn.disabled = false;
     }
 });
@@ -475,6 +652,7 @@ async function fetchSlides() {
         );
 
         slidesTableBody.innerHTML = '';
+        window.adminSlides = response.documents;
 
         if (response.documents.length === 0) {
             slidesTableBody.innerHTML = '<tr><td colspan="4" class="text-center">لا توجد بانرات إعلانية حالياً.</td></tr>';
@@ -483,18 +661,30 @@ async function fetchSlides() {
 
         response.documents.forEach(doc => {
             const tr = document.createElement('tr');
-            const mediaUrl = doc.media && doc.media.length > 0 ? doc.media[0] : 'https://via.placeholder.com/50';
-            const isVideo = mediaUrl.includes('type=video');
+            let mediaUrl = 'https://via.placeholder.com/50';
+            if (doc.media) {
+                if (Array.isArray(doc.media)) {
+                    if (doc.media.length > 0) {
+                        mediaUrl = doc.media[0];
+                    }
+                } else if (typeof doc.media === 'string') {
+                    mediaUrl = doc.media;
+                }
+            }
+            const isVideo = typeof mediaUrl === 'string' && mediaUrl.includes('type=video');
 
             const mediaCellContent = isVideo 
                 ? `<div class="item-img" style="display:inline-flex;align-items:center;justify-content:center;background:#14213d;color:#3a86ff;border-radius:8px;width:50px;height:50px;border:1px solid rgba(255,255,255,0.1);"><i class="fa-solid fa-video"></i></div>`
                 : `<img src="${mediaUrl}" class="item-img" alt="البانر" style="width:50px;height:50px;object-fit:cover;border-radius:8px;">`;
 
             tr.innerHTML = `
-                <td>${mediaCellContent}</td>
-                <td>${doc.title}</td>
-                <td>${doc.category}</td>
-                <td>
+                <td class="col-media">${mediaCellContent}</td>
+                <td class="col-title" data-label="العنوان">${doc.title}</td>
+                <td class="col-category" data-label="الارتباط بالتصنيف">${doc.category}</td>
+                <td class="col-actions">
+                    <button class="btn btn-warning" onclick="editSlide('${doc.$id}')" style="background-color: #fca311; border-color: #fca311; color: #14213d; padding: 6px 12px; margin-left: 5px;">
+                        <i class="fa-solid fa-pen-to-square"></i> تعديل
+                    </button>
                     <button class="btn btn-danger" onclick="deleteSlide('${doc.$id}')" style="padding: 6px 12px;">
                         <i class="fa-solid fa-trash"></i> حذف
                     </button>
@@ -508,6 +698,56 @@ async function fetchSlides() {
         slidesTableBody.innerHTML = '<tr><td colspan="4" class="text-center">يرجى التأكد من إعدادات Appwrite وكولكشن البانر الإعلاني.</td></tr>';
     }
 }
+
+// Edit Slide
+window.editSlide = function(slideId) {
+    const doc = window.adminSlides.find(slide => slide.$id === slideId);
+    if (!doc) return;
+
+    slideEditingId = slideId;
+    
+    let mediaUrl = '';
+    if (doc.media) {
+        if (Array.isArray(doc.media)) {
+            if (doc.media.length > 0) {
+                mediaUrl = doc.media[0];
+            }
+        } else if (typeof doc.media === 'string') {
+            mediaUrl = doc.media;
+        }
+    }
+    existingSlideMedia = mediaUrl ? [mediaUrl] : [];
+
+    document.getElementById('slideTitle').value = doc.title;
+    document.getElementById('slideCategory').value = doc.category || '';
+    document.getElementById('slideDesc').value = doc.description || '';
+
+    slideMediaInput.required = false;
+    slideMediaPreview.innerHTML = '';
+    
+    // Render Slide Media Manager
+    renderSlideMediaManager();
+
+    slideSubmitBtn.querySelector('span').innerText = 'تحديث البانر';
+    cancelSlideEditBtn.style.display = 'inline-block';
+
+    document.querySelector('#slidesTabContent .form-section').scrollIntoView({ behavior: 'smooth' });
+};
+
+// Cancel Slide Edit
+function cancelSlideEdit() {
+    slideEditingId = null;
+    existingSlideMedia = [];
+    addSlideForm.reset();
+    slideMediaPreview.innerHTML = '';
+    slideMediaManager.style.display = 'none';
+    
+    slideMediaInput.required = true;
+    slideSubmitBtn.querySelector('span').innerText = 'إضافة للبانر';
+    cancelSlideEditBtn.style.display = 'none';
+}
+
+cancelSlideEditBtn.addEventListener('click', cancelSlideEdit);
 
 // Delete slide
 window.deleteSlide = async function(slideId) {
@@ -527,5 +767,19 @@ window.deleteSlide = async function(slideId) {
     }
 };
 
+// Global admin logout
+window.logoutAdmin = function() {
+    if (confirm('هل أنت متأكد من تسجيل الخروج؟')) {
+        alert('تم تسجيل الخروج بنجاح.');
+        window.location.href = 'index.html';
+    }
+};
+
 // Initial fetch
 fetchItems();
+
+// Handle mobile hardware back button to redirect directly to the home screen (index.html)
+window.history.pushState(null, "", window.location.href);
+window.addEventListener('popstate', function (event) {
+    window.location.href = 'index.html';
+});

@@ -7,7 +7,7 @@
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
     <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
     <!-- Custom Admin CSS -->
     <link rel="stylesheet" href="css/admin.css">
     <!-- Appwrite Web SDK -->
@@ -16,24 +16,34 @@
 <body>
 
     <div class="admin-container">
-        <!-- Sidebar -->
-        <aside class="sidebar">
-            <div class="sidebar-header">
-                <i class="fa-solid fa-sun logo-icon"></i>
+        <!-- Top AppBar -->
+        <header class="appbar">
+            <div class="appbar-brand">
+                <i class="fa-solid fa-solar-panel brand-icon"></i>
                 <h2>لوحة التحكم</h2>
             </div>
-            <ul class="sidebar-menu">
-                <li class="active" id="tabProductsBtn"><a href="#" onclick="switchTab('products')"><i class="fa-solid fa-box"></i> المنتجات والمشاريع</a></li>
-                <li id="tabSlidesBtn"><a href="#" onclick="switchTab('slides')"><i class="fa-solid fa-images"></i> البانر الإعلاني (السلايدر)</a></li>
-                <li><a href="index.html"><i class="fa-solid fa-globe"></i> زيارة الموقع</a></li>
-            </ul>
-        </aside>
+            <div class="appbar-actions">
+                <a href="index.html" class="btn btn-secondary back-btn" title="رجوع">
+                    <i class="fa-solid fa-arrow-right"></i> رجوع
+                </a>
+                <button onclick="logoutAdmin()" class="btn btn-danger logout-btn" title=" خروج">
+                    <i class="fa-solid fa-right-from-bracket"></i>  خروج
+                </button>
+            </div>
+        </header>
+
+        <!-- TabBar -->
+        <nav class="tabbar">
+            <button class="tab-btn active" id="tabProductsBtn" onclick="switchTab('products')">
+                <i class="fa-solid fa-box"></i> المنتجات 
+            </button>
+            <button class="tab-btn" id="tabSlidesBtn" onclick="switchTab('slides')">
+                <i class="fa-solid fa-images"></i> البانر الإعلاني
+            </button>
+        </nav>
 
         <!-- Main Content -->
         <main class="main-content">
-            <header class="top-header">
-                <h1>إدارة محتوى مدينة الطاقة الشمسية</h1>
-            </header>
 
             <div class="content-wrapper">
                 <!-- Products Tab Content -->
@@ -56,7 +66,7 @@
                             <div class="form-row">
                                 <div class="form-group">
                                     <label for="category">القسم</label>
-                                    <select id="category" required>
+                                    <select id="category" >
                                         <option value="" disabled selected>اختر القسم...</option>
                                         <option value="ألواح شمسية">ألواح شمسية </option>
                                         <option value="بطاريات">بطاريات </option>
@@ -64,7 +74,6 @@
                                         <option value="منظومات شمسية">منظومات شمسية </option>
                                         <option value="أدوات كهربائية">أدوات كهربائية</option>
                                         <option value="أدوات منزلية">أدوات منزلية</option>
-                                        <option value="إنارة شوارع ولمبات محمولة">إنارة شوارع ولمبات محمولة</option>
                                         <option value="مشاريع منجزة">مشاريع منجزة</option>
                                     </select>
                                 </div>
@@ -85,7 +94,7 @@
 
                             <div class="form-row">
                                 <div class="form-group">
-                                    <label for="mainMedia">الوسائط الرئيسية (صورة أو فيديو يظهر في الواجهة)</label>
+                                    <label for="mainMedia">الوسائط الرئيسية </label>
                                     <div class="file-upload-wrapper">
                                         <input type="file" id="mainMedia" accept="image/*,video/*" required>
                                     </div>
@@ -98,6 +107,15 @@
                                     </div>
                                     <div id="additionalMediaPreview" class="image-preview-container" style="margin-top: 10px;"></div>
                                 </div>
+                            </div>
+
+                            <!-- Current Media Manager for Product Editing -->
+                            <div id="productMediaManager" class="media-manager-container" style="display: none;">
+                                <div class="media-manager-title">
+                                    <i class="fa-solid fa-photo-film"></i>
+                                    <span>الوسائط الحالية للمنتج (انقر لمعاينته، أو اضغط لحذفه)</span>
+                                </div>
+                                <div id="productMediaGrid" class="media-manager-grid"></div>
                             </div>
 
                             <div class="form-actions" style="display: flex; gap: 15px; align-items: center; margin-top: 20px;">
@@ -141,7 +159,7 @@
                 <div id="slidesTabContent" style="display: none;">
                     <!-- Add New Slide Form -->
                     <section class="form-section glass-panel">
-                        <h2><i class="fa-solid fa-plus"></i> إضافة بانر جديد للواجهة</h2>
+                        <h2><i class="fa-solid fa-plus"></i> إضافة بانر جديد </h2>
                         <form id="addSlideForm" class="admin-form">
                             <div class="form-row">
                                 <div class="form-group">
@@ -149,8 +167,8 @@
                                     <input type="text" id="slideTitle" required placeholder="مثال: استثمر في طاقة المستقبل">
                                 </div>
                                 <div class="form-group">
-                                    <label for="slideCategory">الارتباط بالتصنيف (الزر يوجه لهذا القسم)</label>
-                                    <select id="slideCategory" required>
+                                    <label for="slideCategory">الارتباط بالتصنيف </label>
+                                    <select id="slideCategory" >
                                         <option value="" disabled selected>اختر القسم للتوجيه إليه...</option>
                                         <option value="ألواح شمسية">ألواح شمسية</option>
                                         <option value="بطاريات">بطاريات</option>
@@ -158,29 +176,40 @@
                                         <option value="منظومات شمسية">منظومات شمسية</option>
                                         <option value="أدوات كهربائية">أدوات كهربائية</option>
                                         <option value="أدوات منزلية">أدوات منزلية</option>
-                                        <option value="إنارة شوارع ولمبات محمولة">إنارة شوارع ولمبات محمولة</option>
                                         <option value="مشاريع منجزة">مشاريع منجزة</option>
                                     </select>
                                 </div>
                             </div>
 
                             <div class="form-group">
-                                <label for="slideDesc">الوصف المكتوب تحت العنوان</label>
+                                <label for="slideDesc">الوصف</label>
                                 <textarea id="slideDesc" rows="3" required placeholder="اكتب وصفاً جذاباً للبانر الإعلاني هنا..."></textarea>
                             </div>
 
                             <div class="form-group">
-                                <label for="slideMedia">الوسائط الرئيسية (صورة أو فيديو يظهر في البانر)</label>
+                                <label for="slideMedia">الوسائط الرئيسية </label>
                                 <div class="file-upload-wrapper">
                                     <input type="file" id="slideMedia" accept="image/*,video/*" required>
                                 </div>
                                 <div id="slideMediaPreview" class="image-preview-container" style="margin-top: 10px;"></div>
                             </div>
 
+                            <!-- Current Media Manager for Slide Editing -->
+                            <div id="slideMediaManager" class="media-manager-container" style="display: none;">
+                                <div class="media-manager-title">
+                                    <i class="fa-solid fa-photo-film"></i>
+                                    <span>الوسيط الحالي للبانر (انقر لمعاينته، أو اضغط لحذفه)</span>
+                                </div>
+                                <div id="slideMediaGrid" class="media-manager-grid"></div>
+                            </div>
+
                             <div class="form-actions" style="display: flex; gap: 15px; align-items: center; margin-top: 20px;">
                                 <button type="submit" class="btn btn-primary btn-submit" id="slideSubmitBtn" style="margin: 0;">
                                     <span>إضافة للبانر</span>
                                     <i class="fa-solid fa-spinner fa-spin" style="display: none;"></i>
+                                </button>
+                                <button type="button" class="btn btn-secondary" id="cancelSlideEditBtn" style="display: none; background-color: #343a40; border-color: #343a40; color: #fff; margin: 0;">
+                                    إلغاء التعديل
                                 </button>
                             </div>
                         </form>
@@ -210,6 +239,15 @@
                 </div>
             </div>
         </main>
+    </div>
+
+    <!-- Lightbox Modal for Media Inspection -->
+    <div id="mediaLightbox" class="lightbox-modal" onclick="closeLightbox()">
+        <span class="lightbox-close" onclick="closeLightbox()">&times;</span>
+        <div class="lightbox-content-wrapper" onclick="event.stopPropagation()">
+            <img id="lightboxImg" src="" alt="معاينة الصورة" style="display: none;">
+            <video id="lightboxVideo" src="" controls autoplay style="display: none;"></video>
+        </div>
     </div>
 
     <!-- Appwrite Config and Logic -->

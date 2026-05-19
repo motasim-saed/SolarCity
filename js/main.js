@@ -2,6 +2,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialize Swiper dynamically
     let heroSwiper = null;
     
+    // Global Intersection Observer for Videos (Banner & Products)
+    let videoObserver = null;
+
     function initSwiper() {
         if (heroSwiper) {
             try {
@@ -11,23 +14,140 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
         
+        const slideCount = document.querySelectorAll('.hero-swiper .swiper-slide').length;
+        const shouldLoop = slideCount > 1;
+        
         heroSwiper = new Swiper('.hero-swiper', {
-            loop: true,
-            effect: 'fade',
-            autoplay: {
+            loop: shouldLoop,
+            centeredSlides: true,
+            slidesPerView: 1.15,
+            spaceBetween: 12,
+            autoplay: shouldLoop ? {
                 delay: 6000,
                 disableOnInteraction: false,
-            },
-            pagination: {
+            } : false,
+            pagination: shouldLoop ? {
                 el: '.swiper-pagination',
                 clickable: true,
-            },
-            navigation: {
+            } : false,
+            navigation: shouldLoop ? {
                 nextEl: '.swiper-button-next',
                 prevEl: '.swiper-button-prev',
+            } : false,
+            breakpoints: {
+                768: {
+                    slidesPerView: 1.25,
+                    spaceBetween: 20
+                },
+                1200: {
+                    slidesPerView: 1.35,
+                    spaceBetween: 30
+                }
             },
+            on: {
+                init: function () {
+                    handleActiveSlideVideo(this);
+                },
+                slideChange: function () {
+                    handleActiveSlideVideo(this);
+                }
+            }
+        });
+
+        // Initialize or update video observer
+        setupVideoObserver();
+    }
+
+    function handleActiveSlideVideo(swiper) {
+        if (!swiper || !swiper.el) return;
+
+        // Pause all videos in Swiper first
+        const allSwiperVideos = swiper.el.querySelectorAll('video');
+        allSwiperVideos.forEach(video => {
+            video.pause();
+        });
+
+        // Get the active slide element
+        const activeSlide = swiper.el.querySelector('.swiper-slide-active');
+        if (!activeSlide) return;
+
+        // Check if active slide has a video
+        const activeVideo = activeSlide.querySelector('video');
+        if (activeVideo) {
+            activeVideo.muted = true;
+            
+            // Pause Swiper autoplay while video is playing
+            if (swiper.autoplay) {
+                swiper.autoplay.stop();
+            }
+
+            // Play the active video (only if it is in view)
+            activeVideo.play().catch(e => console.log('Active slide video play failed:', e));
+
+            // Listen to video end to transition next
+            if (!activeVideo.dataset.hasEndedListener) {
+                activeVideo.addEventListener('ended', () => {
+                    swiper.slideNext();
+                    if (swiper.autoplay) {
+                        swiper.autoplay.start();
+                    }
+                });
+                activeVideo.dataset.hasEndedListener = 'true';
+            }
+        } else {
+            // No video, resume Swiper autoplay
+            if (swiper.autoplay) {
+                swiper.autoplay.start();
+            }
+        }
+    }
+
+    function setupVideoObserver() {
+        if (videoObserver) {
+            videoObserver.disconnect();
+        }
+
+        videoObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                const video = entry.target;
+                const isSwiperVideo = video.closest('.hero-swiper');
+                
+                if (entry.isIntersecting) {
+                    if (isSwiperVideo) {
+                        const slide = video.closest('.swiper-slide');
+                        if (slide && slide.classList.contains('swiper-slide-active')) {
+                            video.muted = true;
+                            video.play().catch(e => {});
+                            if (heroSwiper && heroSwiper.autoplay) {
+                                heroSwiper.autoplay.stop();
+                            }
+                        }
+                    } else {
+                        // Product video: play muted
+                        video.muted = true;
+                        video.play().catch(e => {});
+                    }
+                } else {
+                    // Out of view: pause
+                    video.pause();
+                }
+            });
+        }, {
+            threshold: 0.15
+        });
+
+        observeAllVideos();
+    }
+
+    function observeAllVideos() {
+        if (!videoObserver) return;
+        document.querySelectorAll('video').forEach(video => {
+            videoObserver.observe(video);
         });
     }
+
+    // Expose dynamic observer globally
+    window.observeAllVideos = observeAllVideos;
 
     // Initial call
     initSwiper();
@@ -71,7 +191,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const sectionHeight = current.offsetHeight;
             const sectionTop = current.offsetTop - 100;
             const sectionId = current.getAttribute("id");
-            const navLink = document.querySelector(`.nav-menu a[href*=${sectionId}]`);
+            const navLink = document.querySelector(`.nav-menu a[href*="${sectionId}"]`);
 
             if (navLink) {
                 if (scrollY > sectionTop && scrollY <= sectionTop + sectionHeight) {
@@ -166,7 +286,6 @@ document.addEventListener('DOMContentLoaded', () => {
         async function fetchHeroSlides() {
             const slidesContainer = document.getElementById('dynamic-hero-slides');
             try {
-                if (APPWRITE_CONFIG.PROJECT_ID === 'YOUR_PROJECT_ID') return;
                 
                 const response = await databases.listDocuments(
                     APPWRITE_CONFIG.DATABASE_ID,
@@ -181,11 +300,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 slidesContainer.innerHTML = '';
                 response.documents.forEach(slide => {
-                    const mediaUrl = slide.media && slide.media.length > 0 ? slide.media[0] : 'https://images.unsplash.com/photo-1509391366360-2e959784a276?q=80&w=2072&auto=format&fit=crop';
-                    const isVideo = mediaUrl.includes('type=video');
+                    let mediaUrl = 'https://images.unsplash.com/photo-1509391366360-2e959784a276?q=80&w=2072&auto=format&fit=crop';
+                    if (slide.media) {
+                        if (Array.isArray(slide.media)) {
+                            if (slide.media.length > 0) {
+                                mediaUrl = slide.media[0];
+                            }
+                        } else if (typeof slide.media === 'string') {
+                            mediaUrl = slide.media;
+                        }
+                    }
+                    const isVideo = typeof mediaUrl === 'string' && mediaUrl.includes('type=video');
                     
                     const mediaTag = isVideo 
-                        ? `<video src="${mediaUrl}" autoplay muted loop playsinline style="position:absolute; top:0; left:0; width:100%; height:100%; object-fit:cover; z-index:-1; pointer-events:none;"></video>`
+                        ? `<video src="${mediaUrl}" autoplay muted playsinline style="position:absolute; top:0; left:0; width:100%; height:100%; object-fit:cover; z-index:-1; pointer-events:none;"></video>`
                         : ``;
                     
                     const bgStyle = isVideo ? '' : `background-image: url('${mediaUrl}');`;
@@ -194,18 +322,22 @@ document.addEventListener('DOMContentLoaded', () => {
                     slideDiv.className = 'swiper-slide';
                     if (bgStyle) slideDiv.setAttribute('style', bgStyle);
                     
+                    const buttonHtml = (slide.category && slide.category.trim() !== '') ? `
+                            <div class="hero-buttons" style="justify-content: center; display: flex; width: 100%;">
+                                <button class="btn btn-primary" onclick="scrollAndFilterCategory('${slide.category}')" style="display: inline-flex; align-items: center; gap: 8px;">
+                                    <span>المزيد: ${slide.category}</span>
+                                    <i class="fa-solid fa-arrow-left"></i>
+                                </button>
+                            </div>
+                    ` : '';
+
                     slideDiv.innerHTML = `
                         ${mediaTag}
                         <div class="hero-overlay"></div>
                         <div class="container hero-content" style="text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center;">
                             <h1 class="hero-title" style="text-align: center; margin: 0 auto 15px auto;">${slide.title}</h1>
                             <p class="hero-subtitle" style="text-align: center; margin: 0 auto 30px auto; max-width: 800px;">${slide.description}</p>
-                            <div class="hero-buttons" style="justify-content: center; display: flex; width: 100%;">
-                                <button class="btn btn-primary" onclick="scrollAndFilterCategory('${slide.category}')" style="display: inline-flex; align-items: center; gap: 8px;">
-                                    <span>عرض قسم: ${slide.category}</span>
-                                    <i class="fa-solid fa-arrow-left"></i>
-                                </button>
-                            </div>
+                            ${buttonHtml}
                         </div>
                     `;
                     slidesContainer.appendChild(slideDiv);
@@ -237,7 +369,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Global scroll and filter function for slides button link
         window.scrollAndFilterCategory = function(categoryName) {
-            const targetElement = document.getElementById('projects');
+            let sectionId = 'projects';
+            if (categoryName === 'ألواح شمسية') sectionId = 'cat-panels';
+            else if (categoryName === 'بطاريات') sectionId = 'cat-batteries';
+            else if (categoryName === 'محولات') sectionId = 'cat-inverters';
+            else if (categoryName === 'منظومات شمسية') sectionId = 'cat-systems';
+            else if (categoryName === 'أدوات كهربائية') sectionId = 'cat-electrical';
+            else if (categoryName === 'أدوات منزلية') sectionId = 'cat-household';
+            else if (categoryName === 'مشاريع منجزة') sectionId = 'cat-projects-list';
+
+            const targetElement = document.getElementById(sectionId) || document.getElementById('projects');
             if (targetElement) {
                 const headerHeight = document.querySelector('.header').offsetHeight;
                 const targetPosition = targetElement.getBoundingClientRect().top + window.pageYOffset - headerHeight;
@@ -246,10 +387,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     behavior: 'smooth'
                 });
             }
-            
-            setTimeout(() => {
-                window.filterByCategory(categoryName);
-            }, 600);
         };
 
         // Fetch Products dynamically
@@ -257,11 +394,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const productsContainer = document.getElementById('dynamic-products');
             
             try {
-                if (APPWRITE_CONFIG.PROJECT_ID === 'YOUR_PROJECT_ID') {
-                    productsContainer.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 40px;">يرجى إضافة معرفات Appwrite في ملف config.js لعرض المنتجات.</div>';
-                    return;
-                }
-
+                
                 const response = await databases.listDocuments(
                     APPWRITE_CONFIG.DATABASE_ID,
                     APPWRITE_CONFIG.COLLECTION_ID
@@ -270,120 +403,238 @@ document.addEventListener('DOMContentLoaded', () => {
                 productsContainer.innerHTML = '';
 
                 if (response.documents.length === 0) {
-                    productsContainer.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 40px;">لا توجد منتجات أو مشاريع حالياً.</div>';
+                    productsContainer.innerHTML = '<div style="text-align: center; padding: 40px;">لا توجد منتجات أو مشاريع حالياً.</div>';
                     return;
                 }
 
                 window.loadedProducts = response.documents;
 
-                // Setup dynamic category filters
-                const filterContainer = document.getElementById('category-filter-container');
-                const filterScroll = filterContainer.querySelector('.category-filter-scroll');
-                
-                // Get list of unique categories actually containing products
+                // Setup dynamic navbar navigation links for ALL categories containing products
+                const categoryOrder = [
+                    "ألواح شمسية",
+                    "بطاريات",
+                    "محولات",
+                    "منظومات شمسية",
+                    "أدوات كهربائية",
+                    "أدوات منزلية",
+                   
+                    "مشاريع منجزة"
+                ];
+
+                const categoryIds = {
+                    "ألواح شمسية": "cat-panels",
+                    "بطاريات": "cat-batteries",
+                    "محولات": "cat-inverters",
+                    "منظومات شمسية": "cat-systems",
+                    "أدوات كهربائية": "cat-electrical",
+                    "أدوات منزلية": "cat-household",
+                    
+                    "مشاريع منجزة": "cat-projects-list",
+                    "عام": "cat-general"
+                };
+
+                // Get unique active categories
                 const activeCategories = [...new Set(response.documents.map(doc => doc.category).filter(Boolean))];
-                
-                if (activeCategories.length > 0) {
-                    filterContainer.style.display = 'block';
-                    
-                    // Reset container but keep the "الكل" button
-                    filterScroll.innerHTML = `<button id="filter-btn-all" class="filter-btn active" onclick="window.filterByCategory('all', this)">الكل</button>`;
-                    
+
+                // Sort active categories based on predefined order
+                activeCategories.sort((a, b) => {
+                    let indexA = categoryOrder.indexOf(a);
+                    let indexB = categoryOrder.indexOf(b);
+                    if (indexA === -1) indexA = 999;
+                    if (indexB === -1) indexB = 999;
+                    return indexA - indexB;
+                });
+
+                // Remove existing dynamic categories from navbar if any
+                document.querySelectorAll(".dynamic-cat-nav-item").forEach(item => item.remove());
+
+                // Inject dynamic category links in the navbar right after "من نحن"
+                const aboutLink = document.querySelector('.nav-menu a[href="#about"]');
+                if (aboutLink) {
+                    const aboutLi = aboutLink.parentElement;
+                    let referenceNode = aboutLi;
+
                     activeCategories.forEach(cat => {
-                        const btn = document.createElement('button');
-                        btn.className = 'filter-btn';
-                        btn.innerText = cat;
-                        btn.onclick = function() {
-                            window.filterByCategory(cat, btn);
-                        };
-                        filterScroll.appendChild(btn);
+                        const sectionId = categoryIds[cat] || "cat-" + encodeURIComponent(cat).replace(/%/g, "");
+                        
+                        const newLi = document.createElement("li");
+                        newLi.className = "dynamic-cat-nav-item";
+                        
+                        const navLink = document.createElement("a");
+                        navLink.href = `#${sectionId}`;
+                        navLink.className = "nav-link";
+                        navLink.innerText = cat;
+                        
+                        // Close mobile menu and smooth scroll when clicked
+                        navLink.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            
+                            // Close hamburger menu on mobile
+                            const hamburger = document.querySelector(".hamburger");
+                            const navMenu = document.querySelector(".nav-menu");
+                            if (hamburger && navMenu) {
+                                hamburger.classList.remove("active");
+                                navMenu.classList.remove("active");
+                            }
+
+                            // Smooth Scroll directly to the category section
+                            const targetElement = document.getElementById(sectionId);
+                            if (targetElement) {
+                                const headerHeight = document.querySelector('.header').offsetHeight;
+                                const targetPosition = targetElement.getBoundingClientRect().top + window.pageYOffset - headerHeight;
+                                window.scrollTo({
+                                    top: targetPosition,
+                                    behavior: 'smooth'
+                                });
+                            }
+                        });
+
+                        newLi.appendChild(navLink);
+                        referenceNode.parentNode.insertBefore(newLi, referenceNode.nextSibling);
+                        referenceNode = newLi; // Update reference so they appear in correct sequence
                     });
-                } else {
-                    filterContainer.style.display = 'none';
                 }
 
-                // Render all products initially
-                window.renderProductsGrid('all');
+                // Render products grouped by category and stacked vertically
+                window.renderProductsVertical();
 
             } catch (error) {
                 console.error('Error fetching products:', error);
-                productsContainer.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--danger);">حدث خطأ أثناء جلب البيانات. تأكد من إعدادات Appwrite.</div>';
+                productsContainer.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--danger);">حدث خطأ أثناء جلب البيانات. تأكد من إعدادات Appwrite.</div>';
             }
         }
 
-        // Global filter products
-        window.filterByCategory = function(categoryName, btnEl) {
-            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
-            
-            if (btnEl) {
-                btnEl.classList.add('active');
-            } else {
-                if (categoryName === 'all') {
-                    const allBtn = document.getElementById('filter-btn-all');
-                    if (allBtn) allBtn.classList.add('active');
-                } else {
-                    const buttons = document.querySelectorAll('.filter-btn');
-                    buttons.forEach(btn => {
-                        if (btn.innerText === categoryName) {
-                            btn.classList.add('active');
-                        }
-                    });
-                }
-            }
-
-            window.renderProductsGrid(categoryName);
-        };
-
-        // Render products grid helper
-        window.renderProductsGrid = function(filterCategory = 'all') {
+        // Render products vertically by category
+        window.renderProductsVertical = function() {
             const productsContainer = document.getElementById('dynamic-products');
             productsContainer.innerHTML = '';
 
-            const filtered = filterCategory === 'all'
-                ? window.loadedProducts
-                : window.loadedProducts.filter(doc => doc.category === filterCategory);
-
-            if (filtered.length === 0) {
-                productsContainer.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 40px;">لا توجد منتجات في هذا القسم حالياً.</div>';
-                return;
-            }
-
-            filtered.forEach(doc => {
-                const imgSrc = doc.media && doc.media.length > 0 ? doc.media[0] : 'https://images.unsplash.com/photo-1509391366360-2e959784a276?q=80&w=2072&auto=format&fit=crop';
-                const isVideo = imgSrc.includes('type=video');
-                
-                const mediaTag = isVideo 
-                    ? `<video src="${imgSrc}" autoplay muted loop playsinline style="width:100%;height:100%;object-fit:cover;pointer-events:none;"></video>`
-                    : `<img src="${imgSrc}" alt="${doc.name}">`;
-
-                let priceHtml = '';
-                if (doc.newPrice) {
-                    priceHtml = `<div class="product-price">
-                                    <span class="new-price">${doc.newPrice} ريال</span>
-                                    ${doc.oldPrice ? `<span class="old-price">${doc.oldPrice} ريال</span>` : ''}
-                                 </div>`;
+            // Group products by category
+            const productsByCategory = {};
+            window.loadedProducts.forEach(doc => {
+                const cat = doc.category || 'عام';
+                if (!productsByCategory[cat]) {
+                    productsByCategory[cat] = [];
                 }
-
-                const card = document.createElement('div');
-                card.className = 'product-card';
-                card.innerHTML = `
-                    <div class="product-img-wrapper">
-                        <span class="product-category">${doc.category || 'عام'}</span>
-                        ${mediaTag}
-                    </div>
-                    <div class="product-content">
-                        <h3>${doc.name}</h3>
-                        <span class="product-type">${doc.type || ''}</span>
-                        <p class="product-desc">${doc.description ? doc.description.substring(0, 70) + '...' : ''}</p>
-                        
-                        <div class="product-footer">
-                            ${priceHtml}
-                            <button class="btn-details" onclick="openProductDetails('${doc.$id}')" style="background: none; border: none; cursor: pointer; font-family: inherit;">التفاصيل <i class="fa-solid fa-arrow-left"></i></button>
-                        </div>
-                    </div>
-                `;
-                productsContainer.appendChild(card);
+                productsByCategory[cat].push(doc);
             });
+
+            // Define ordered categories and metadata
+            const categoryOrder = [
+                "ألواح شمسية",
+                "بطاريات",
+                "محولات",
+                "منظومات شمسية",
+                "أدوات كهربائية",
+                "أدوات منزلية",
+                
+                "مشاريع منجزة"
+            ];
+
+            const categoryIcons = {
+                "ألواح شمسية": "fa-solid fa-solar-panel",
+                "بطاريات": "fa-solid fa-battery-three-quarters",
+                "محولات": "fa-solid fa-repeat",
+                "منظومات شمسية": "fa-solid fa-network-wired",
+                "أدوات كهربائية": "fa-solid fa-plug",
+                "أدوات منزلية": "fa-solid fa-house-laptop",
+                
+                "مشاريع منجزة": "fa-solid fa-clipboard-check",
+                "عام": "fa-solid fa-box"
+            };
+
+            const categoryIds = {
+                "ألواح شمسية": "cat-panels",
+                "بطاريات": "cat-batteries",
+                "محولات": "cat-inverters",
+                "منظومات شمسية": "cat-systems",
+                "أدوات كهربائية": "cat-electrical",
+                "أدوات منزلية": "cat-household",
+                "إنارة شوارع ولمبات محمولة": "cat-lighting",
+                "مشاريع منجزة": "cat-projects-list",
+                "عام": "cat-general"
+            };
+
+            // Sort active categories based on predefined order
+            const activeCategories = Object.keys(productsByCategory).sort((a, b) => {
+                let indexA = categoryOrder.indexOf(a);
+                let indexB = categoryOrder.indexOf(b);
+                if (indexA === -1) indexA = 999;
+                if (indexB === -1) indexB = 999;
+                return indexA - indexB;
+            });
+
+            // Generate HTML structure for each category
+            activeCategories.forEach(cat => {
+                const products = productsByCategory[cat];
+                if (products.length === 0) return;
+
+                const sectionId = categoryIds[cat] || "cat-" + encodeURIComponent(cat).replace(/%/g, "");
+                const iconClass = categoryIcons[cat] || "fa-solid fa-sun";
+
+                const categorySection = document.createElement("section");
+                categorySection.id = sectionId;
+                categorySection.className = "category-section";
+                categorySection.style.scrollMarginTop = "90px";
+
+                // Header with a premium dynamic styling
+                const headerDiv = document.createElement("div");
+                headerDiv.className = "category-header";
+                headerDiv.innerHTML = `
+                    <h3><i class="${iconClass}"></i> ${cat}</h3>
+                    <div class="category-divider"></div>
+                `;
+
+                // Product Grid
+                const gridDiv = document.createElement("div");
+                gridDiv.className = "products-grid";
+
+                products.forEach(doc => {
+                    const imgSrc = doc.media && doc.media.length > 0 ? doc.media[0] : 'https://images.unsplash.com/photo-1509391366360-2e959784a276?q=80&w=2072&auto=format&fit=crop';
+                    const isVideo = imgSrc.includes('type=video');
+                    
+                    const mediaTag = isVideo 
+                        ? `<video src="${imgSrc}" autoplay muted loop playsinline style="width:100%;height:100%;object-fit:cover;pointer-events:none;"></video>`
+                        : `<img src="${imgSrc}" alt="${doc.name}">`;
+
+                    let priceHtml = '';
+                    if (doc.newPrice) {
+                        priceHtml = `<div class="product-price">
+                                        <span class="new-price">${doc.newPrice} ريال</span>
+                                        ${doc.oldPrice ? `<span class="old-price">${doc.oldPrice} ريال</span>` : ''}
+                                     </div>`;
+                    }
+
+                    const card = document.createElement('div');
+                    card.className = 'product-card';
+                    card.innerHTML = `
+                        <div class="product-img-wrapper">
+                            <span class="product-category">${doc.category || 'عام'}</span>
+                            ${mediaTag}
+                        </div>
+                        <div class="product-content">
+                            <h3>${doc.name}</h3>
+                            <span class="product-type">${doc.type || ''}</span>
+                            <p class="product-desc">${doc.description ? doc.description.substring(0, 70) + '...' : ''}</p>
+                            
+                            <div class="product-footer">
+                                ${priceHtml}
+                                <button class="btn-details" onclick="openProductDetails('${doc.$id}')" style="background: none; border: none; cursor: pointer; font-family: inherit;">التفاصيل <i class="fa-solid fa-arrow-left"></i></button>
+                            </div>
+                        </div>
+                    `;
+                    gridDiv.appendChild(card);
+                });
+
+                categorySection.appendChild(headerDiv);
+                categorySection.appendChild(gridDiv);
+                productsContainer.appendChild(categorySection);
+            });
+
+            // Trigger video observer to watch newly loaded product videos
+            if (typeof window.observeAllVideos === 'function') {
+                window.observeAllVideos();
+            }
         };
 
         // Start loaders
@@ -449,14 +700,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (isThumbVideo) {
                     const thumbContainer = document.createElement('div');
                     thumbContainer.className = `modal-thumbnail ${index === 0 ? 'active' : ''}`;
-                    thumbContainer.style.position = 'relative';
-                    thumbContainer.style.display = 'inline-block';
-                    thumbContainer.style.cursor = 'pointer';
-                    thumbContainer.style.width = '65px';
-                    thumbContainer.style.height = '65px';
-                    thumbContainer.style.borderRadius = '8px';
-                    thumbContainer.style.overflow = 'hidden';
-                    thumbContainer.style.flexShrink = '0';
                     
                     thumbContainer.innerHTML = `
                         <video src="${mediaUrl}" style="width:100%;height:100%;object-fit:cover;pointer-events:none;"></video>
@@ -474,11 +717,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     thumb.src = mediaUrl;
                     thumb.className = `modal-thumbnail ${index === 0 ? 'active' : ''}`;
                     thumb.alt = `${product.name} - ${index + 1}`;
-                    thumb.style.width = '65px';
-                    thumb.style.height = '65px';
-                    thumb.style.objectFit = 'cover';
-                    thumb.style.borderRadius = '8px';
-                    thumb.style.flexShrink = '0';
                     
                     thumb.onclick = function() {
                         setMainMedia(mediaUrl);
@@ -509,23 +747,44 @@ document.addEventListener('DOMContentLoaded', () => {
         modalWhatsappBtn.href = `https://wa.me/${whatsappNumber}?text=${encodedText}`;
 
         modal.classList.add('active');
+        
+        // Push modal state into history to intercept the hardware back button
+        history.pushState({ modalOpen: true }, "");
     };
 
-    // Close Modal Logic
+    // Close Modal Logic (including hardware back button support)
     const modal = document.getElementById('productModal');
     const closeBtn = document.querySelector('.close-modal');
-    if (closeBtn && modal) {
-        closeBtn.onclick = function() {
+    
+    function closeModalAction() {
+        if (modal && modal.classList.contains('active')) {
             modal.classList.remove('active');
             const modalMainVideo = document.getElementById('modalMainVideo');
             if (modalMainVideo) modalMainVideo.pause();
+        }
+    }
+    
+    if (closeBtn && modal) {
+        closeBtn.onclick = function() {
+            if (history.state && history.state.modalOpen) {
+                history.back();
+            } else {
+                closeModalAction();
+            }
         };
         window.onclick = function(event) {
             if (event.target == modal) {
-                modal.classList.remove('active');
-                const modalMainVideo = document.getElementById('modalMainVideo');
-                if (modalMainVideo) modalMainVideo.pause();
+                if (history.state && history.state.modalOpen) {
+                    history.back();
+                } else {
+                    closeModalAction();
+                }
             }
         };
     }
+    
+    // Listen for hardware/browser back button event
+    window.addEventListener('popstate', function(event) {
+        closeModalAction();
+    });
 });
