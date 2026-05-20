@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     // Initialize Swiper dynamically
     let heroSwiper = null;
-    
+
     // Global Intersection Observer for Videos (Banner & Products)
     let videoObserver = null;
 
@@ -13,10 +13,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.warn('Swiper destroy failed:', e);
             }
         }
-        
+
         const slideCount = document.querySelectorAll('.hero-swiper .swiper-slide').length;
         const shouldLoop = slideCount > 1;
-        
+
         heroSwiper = new Swiper('.hero-swiper', {
             loop: shouldLoop,
             centeredSlides: true,
@@ -75,7 +75,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const activeVideo = activeSlide.querySelector('video');
         if (activeVideo) {
             activeVideo.muted = true;
-            
+
             // Pause Swiper autoplay while video is playing
             if (swiper.autoplay) {
                 swiper.autoplay.stop();
@@ -111,13 +111,13 @@ document.addEventListener('DOMContentLoaded', () => {
             entries.forEach(entry => {
                 const video = entry.target;
                 const isSwiperVideo = video.closest('.hero-swiper');
-                
+
                 if (entry.isIntersecting) {
                     if (isSwiperVideo) {
                         const slide = video.closest('.swiper-slide');
                         if (slide && slide.classList.contains('swiper-slide-active')) {
                             video.muted = true;
-                            video.play().catch(e => {});
+                            video.play().catch(e => { });
                             if (heroSwiper && heroSwiper.autoplay) {
                                 heroSwiper.autoplay.stop();
                             }
@@ -125,7 +125,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     } else {
                         // Product video: play muted
                         video.muted = true;
-                        video.play().catch(e => {});
+                        video.play().catch(e => { });
                     }
                 } else {
                     // Out of view: pause
@@ -171,14 +171,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Sticky Header Effect
     const header = document.querySelector(".header");
-    
+
     window.addEventListener("scroll", () => {
         if (window.scrollY > 50) {
             header.classList.add("scrolled");
         } else {
             header.classList.remove("scrolled");
         }
-        
+
         updateActiveLink();
     });
 
@@ -207,14 +207,14 @@ document.addEventListener('DOMContentLoaded', () => {
         anchor.addEventListener('click', function (e) {
             const targetId = this.getAttribute('href');
             if (targetId === '#') return;
-            
+
             const targetElement = document.querySelector(targetId);
             if (targetElement) {
                 e.preventDefault();
-                
+
                 const headerHeight = document.querySelector('.header').offsetHeight;
                 const targetPosition = targetElement.getBoundingClientRect().top + window.pageYOffset - headerHeight;
-                
+
                 window.scrollTo({
                     top: targetPosition,
                     behavior: 'smooth'
@@ -250,15 +250,15 @@ document.addEventListener('DOMContentLoaded', () => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
                 const numberElements = entry.target.querySelectorAll('h3');
-                
+
                 numberElements.forEach(el => {
                     let text = el.innerText;
                     let endVal = parseInt(text.replace(/[^0-9]/g, ''));
-                    
+
                     if (!isNaN(endVal)) {
                         if (text.includes('+')) el.dataset.plus = true;
                         if (text.includes('%')) el.dataset.percent = true;
-                        
+
                         animateValue(el, 0, endVal, 2000);
                         observer.unobserve(entry.target);
                     }
@@ -275,18 +275,18 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Appwrite Integration ---
     if (typeof Appwrite !== 'undefined' && document.getElementById('dynamic-products')) {
         const { Client, Databases } = Appwrite;
-        
+
         const client = new Client()
             .setEndpoint(APPWRITE_CONFIG.ENDPOINT)
             .setProject(APPWRITE_CONFIG.PROJECT_ID);
 
         const databases = new Databases(client);
-        
+
         // Fetch Banners dynamically
         async function fetchHeroSlides() {
             const slidesContainer = document.getElementById('dynamic-hero-slides');
             try {
-                
+
                 const response = await databases.listDocuments(
                     APPWRITE_CONFIG.DATABASE_ID,
                     APPWRITE_CONFIG.SLIDER_COLLECTION_ID
@@ -311,17 +311,17 @@ document.addEventListener('DOMContentLoaded', () => {
                         }
                     }
                     const isVideo = typeof mediaUrl === 'string' && mediaUrl.includes('type=video');
-                    
-                    const mediaTag = isVideo 
+
+                    const mediaTag = isVideo
                         ? `<video src="${mediaUrl}" autoplay muted playsinline style="position:absolute; top:0; left:0; width:100%; height:100%; object-fit:cover; z-index:-1; pointer-events:none;"></video>`
                         : ``;
-                    
+
                     const bgStyle = isVideo ? '' : `background-image: url('${mediaUrl}');`;
 
                     const slideDiv = document.createElement('div');
                     slideDiv.className = 'swiper-slide';
                     if (bgStyle) slideDiv.setAttribute('style', bgStyle);
-                    
+
                     const buttonHtml = (slide.category && slide.category.trim() !== '') ? `
                             <div class="hero-buttons" style="justify-content: center; display: flex; width: 100%;">
                                 <button class="btn btn-primary" onclick="scrollAndFilterCategory('${slide.category}')" style="display: inline-flex; align-items: center; gap: 8px;">
@@ -368,7 +368,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // Global scroll and filter function for slides button link
-        window.scrollAndFilterCategory = function(categoryName) {
+        window.scrollAndFilterCategory = function (categoryName) {
             let sectionId = 'projects';
             if (categoryName === 'ألواح شمسية') sectionId = 'cat-panels';
             else if (categoryName === 'بطاريات') sectionId = 'cat-batteries';
@@ -392,9 +392,9 @@ document.addEventListener('DOMContentLoaded', () => {
         // Fetch Products dynamically
         async function fetchProducts() {
             const productsContainer = document.getElementById('dynamic-products');
-            
+
             try {
-                
+
                 const response = await databases.listDocuments(
                     APPWRITE_CONFIG.DATABASE_ID,
                     APPWRITE_CONFIG.COLLECTION_ID
@@ -417,7 +417,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     "منظومات شمسية",
                     "أدوات كهربائية",
                     "أدوات منزلية",
-                   
+
                     "مشاريع منجزة"
                 ];
 
@@ -428,7 +428,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     "منظومات شمسية": "cat-systems",
                     "أدوات كهربائية": "cat-electrical",
                     "أدوات منزلية": "cat-household",
-                    
+
                     "مشاريع منجزة": "cat-projects-list",
                     "عام": "cat-general"
                 };
@@ -456,19 +456,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     activeCategories.forEach(cat => {
                         const sectionId = categoryIds[cat] || "cat-" + encodeURIComponent(cat).replace(/%/g, "");
-                        
+
                         const newLi = document.createElement("li");
                         newLi.className = "dynamic-cat-nav-item";
-                        
+
                         const navLink = document.createElement("a");
                         navLink.href = `#${sectionId}`;
                         navLink.className = "nav-link";
                         navLink.innerText = cat;
-                        
+
                         // Close mobile menu and smooth scroll when clicked
-                        navLink.addEventListener('click', function(e) {
+                        navLink.addEventListener('click', function (e) {
                             e.preventDefault();
-                            
+
                             // Close hamburger menu on mobile
                             const hamburger = document.querySelector(".hamburger");
                             const navMenu = document.querySelector(".nav-menu");
@@ -505,7 +505,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // Render products vertically by category
-        window.renderProductsVertical = function() {
+        window.renderProductsVertical = function () {
             const productsContainer = document.getElementById('dynamic-products');
             productsContainer.innerHTML = '';
 
@@ -527,7 +527,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 "منظومات شمسية",
                 "أدوات كهربائية",
                 "أدوات منزلية",
-                
+
                 "مشاريع منجزة"
             ];
 
@@ -538,7 +538,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 "منظومات شمسية": "fa-solid fa-network-wired",
                 "أدوات كهربائية": "fa-solid fa-plug",
                 "أدوات منزلية": "fa-solid fa-house-laptop",
-                
+
                 "مشاريع منجزة": "fa-solid fa-clipboard-check",
                 "عام": "fa-solid fa-box"
             };
@@ -592,8 +592,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 products.forEach(doc => {
                     const imgSrc = doc.media && doc.media.length > 0 ? doc.media[0] : 'https://images.unsplash.com/photo-1509391366360-2e959784a276?q=80&w=2072&auto=format&fit=crop';
                     const isVideo = imgSrc.includes('type=video');
-                    
-                    const mediaTag = isVideo 
+
+                    const mediaTag = isVideo
                         ? `<video src="${imgSrc}" autoplay muted loop playsinline style="width:100%;height:100%;object-fit:cover;pointer-events:none;"></video>`
                         : `<img src="${imgSrc}" alt="${doc.name}">`;
 
@@ -643,7 +643,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Modal Global Functions
-    window.openProductDetails = function(id) {
+    window.openProductDetails = function (id) {
         const product = window.loadedProducts.find(p => p.$id === id);
         if (!product) return;
 
@@ -680,7 +680,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 modalMainVideo.src = mediaUrl;
                 modalMainVideo.style.display = 'block';
                 modalMainImg.style.display = 'none';
-                modalMainVideo.play().catch(() => {});
+                modalMainVideo.play().catch(() => { });
             } else {
                 modalMainImg.src = mediaUrl;
                 modalMainImg.style.display = 'block';
@@ -693,20 +693,20 @@ document.addEventListener('DOMContentLoaded', () => {
         modalThumbnails.innerHTML = '';
         if (product.media && product.media.length > 0) {
             setMainMedia(product.media[0]);
-            
+
             product.media.forEach((mediaUrl, index) => {
                 const isThumbVideo = mediaUrl.includes('type=video');
-                
+
                 if (isThumbVideo) {
                     const thumbContainer = document.createElement('div');
                     thumbContainer.className = `modal-thumbnail ${index === 0 ? 'active' : ''}`;
-                    
+
                     thumbContainer.innerHTML = `
                         <video src="${mediaUrl}" style="width:100%;height:100%;object-fit:cover;pointer-events:none;"></video>
                         <i class="fa-solid fa-play" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:#fff;background:rgba(20,33,61,0.8);border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:0.6rem;border:1px solid rgba(255,255,255,0.2);"></i>
                     `;
-                    
-                    thumbContainer.onclick = function() {
+
+                    thumbContainer.onclick = function () {
                         setMainMedia(mediaUrl);
                         document.querySelectorAll('.modal-thumbnail').forEach(t => t.classList.remove('active'));
                         thumbContainer.classList.add('active');
@@ -717,8 +717,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     thumb.src = mediaUrl;
                     thumb.className = `modal-thumbnail ${index === 0 ? 'active' : ''}`;
                     thumb.alt = `${product.name} - ${index + 1}`;
-                    
-                    thumb.onclick = function() {
+
+                    thumb.onclick = function () {
                         setMainMedia(mediaUrl);
                         document.querySelectorAll('.modal-thumbnail').forEach(t => t.classList.remove('active'));
                         thumb.classList.add('active');
@@ -735,19 +735,19 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // WhatsApp Message
-        const whatsappNumber = "+966500000000";
+        const whatsappNumber = "+967781663300";
         const productInfo = `السلام عليكم ورحمة الله، أرغب في الاستفسار عن منتج:
 - الاسم: ${product.name}
 - القسم: ${product.category || 'غير محدد'}
 - النوع: ${product.type || 'غير محدد'}
 - السعر: ${product.newPrice ? product.newPrice + ' ريال' : 'غير محدد'}
 - الوصف الكامل: ${product.description || 'لا يوجد'}`;
-        
+
         const encodedText = encodeURIComponent(productInfo);
         modalWhatsappBtn.href = `https://wa.me/${whatsappNumber}?text=${encodedText}`;
 
         modal.classList.add('active');
-        
+
         // Push modal state into history to intercept the hardware back button
         history.pushState({ modalOpen: true }, "");
     };
@@ -755,7 +755,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Close Modal Logic (including hardware back button support)
     const modal = document.getElementById('productModal');
     const closeBtn = document.querySelector('.close-modal');
-    
+
     function closeModalAction() {
         if (modal && modal.classList.contains('active')) {
             modal.classList.remove('active');
@@ -763,16 +763,16 @@ document.addEventListener('DOMContentLoaded', () => {
             if (modalMainVideo) modalMainVideo.pause();
         }
     }
-    
+
     if (closeBtn && modal) {
-        closeBtn.onclick = function() {
+        closeBtn.onclick = function () {
             if (history.state && history.state.modalOpen) {
                 history.back();
             } else {
                 closeModalAction();
             }
         };
-        window.onclick = function(event) {
+        window.onclick = function (event) {
             if (event.target == modal) {
                 if (history.state && history.state.modalOpen) {
                     history.back();
@@ -782,9 +782,9 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         };
     }
-    
+
     // Listen for hardware/browser back button event
-    window.addEventListener('popstate', function(event) {
+    window.addEventListener('popstate', function (event) {
         closeModalAction();
     });
 });
