@@ -290,16 +290,17 @@ h1, h2, h3, h4, h5, h6 {
     border-radius: 24px;
     overflow: hidden;
     height: calc(100vh - 160px) !important;
-    transform: scale(0.9);
-    opacity: 0.45;
-    transition: transform 0.7s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.7s ease;
+    opacity: 0.4;
+    transition: opacity 1.2s ease, filter 1.2s ease;
     box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
     border: 1px solid rgba(255, 255, 255, 0.08);
+    filter: blur(5px) brightness(0.5);
 }
 
 .swiper-slide-active {
-    transform: scale(1);
     opacity: 1;
+    filter: blur(0) brightness(1);
+    border: 2px solid var(--primary-color) !important;
 }
 
 /* Custom Swiper Styling */
@@ -899,7 +900,10 @@ h1, h2, h3, h4, h5, h6 {
         font-size: 0.75rem;
     }
     
-    .hero-buttons { flex-direction: column; }
+    .hero-buttons { 
+        flex-direction: column;
+        align-items: center; 
+    }
     .footer-content { grid-template-columns: 1fr; }
     
     .logo { font-size: 1.1rem; white-space: nowrap; }
@@ -1391,4 +1395,131 @@ h1, h2, h3, h4, h5, h6 {
     }
 }
 
+/* WhatsApp Button */
+.btn-whatsapp {
+    background-color: #25D366;
+    color: white;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: var(--transition);
+    align-self: flex-start;
+}
 
+.btn-whatsapp:hover {
+    background-color: #1ebe57;
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(37, 211, 102, 0.5);
+    color: white;
+}
+
+/* Skeleton Loaders */
+@keyframes shimmer {
+    0% { background-position: -1000px 0; }
+    100% { background-position: 1000px 0; }
+}
+
+.skeleton-slide {
+    background-color: #1a1f27;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    border: 1px solid rgba(255,255,255,0.05);
+}
+
+.skeleton-title {
+    width: 60%;
+    height: 40px;
+    margin: 0 auto 20px;
+    background: linear-gradient(90deg, rgba(255,255,255,0.05) 25%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.05) 75%);
+    background-size: 1000px 100%;
+    animation: shimmer 2s infinite linear;
+    border-radius: 8px;
+}
+
+.skeleton-subtitle {
+    width: 40%;
+    height: 20px;
+    margin: 0 auto 40px;
+    background: linear-gradient(90deg, rgba(255,255,255,0.05) 25%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.05) 75%);
+    background-size: 1000px 100%;
+    animation: shimmer 2s infinite linear;
+    border-radius: 8px;
+}
+
+.skeleton-btn {
+    width: 150px;
+    height: 50px;
+    margin: 0 auto;
+    border-radius: 30px;
+    background: linear-gradient(90deg, rgba(252, 163, 17, 0.2) 25%, rgba(252, 163, 17, 0.4) 50%, rgba(252, 163, 17, 0.2) 75%);
+    background-size: 1000px 100%;
+    animation: shimmer 2s infinite linear;
+}
+
+.skeleton-product-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 30px;
+    width: 100%;
+}
+
+.skeleton-card {
+    height: 400px;
+    background-color: #1a1f27;
+    border-radius: 20px;
+    background: linear-gradient(90deg, rgba(255,255,255,0.03) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.03) 75%);
+    background-size: 1000px 100%;
+    animation: shimmer 2s infinite linear;
+    border: 1px solid rgba(255,255,255,0.05);
+}
+
+/* Floating WhatsApp Button */
+.floating-whatsapp {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    width: 60px;
+    height: 60px;
+    background-color: #25D366;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 35px;
+    box-shadow: 0 4px 15px rgba(37, 211, 102, 0.4);
+    z-index: 9999;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    animation: float 3s ease-in-out infinite;
+    text-decoration: none;
+}
+
+.floating-whatsapp:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 20px rgba(37, 211, 102, 0.6);
+    color: white;
+}
+
+@keyframes float {
+    0% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+    100% { transform: translateY(0); }
+}
+
+/* Enhancing Swiper to match Screenshot Style */
+.hero-swiper .swiper-pagination-bullet {
+    width: 12px;
+    height: 12px;
+    background: rgba(255, 255, 255, 0.4);
+    opacity: 1;
+    transition: all 0.3s ease;
+}
+
+.hero-swiper .swiper-pagination-bullet-active {
+    width: 35px;
+    border-radius: 6px;
+    background: var(--primary-color);
+}

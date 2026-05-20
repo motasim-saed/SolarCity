@@ -4,9 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>المدينة الشمسية - لحياة أكثر إشراقاً</title>
+    <title> القحطاني - المدينة الشمسية</title>
     <meta name="description"
-        content="المدينة  الشمسية - الخبراء في تصميم وتركيب وصيانة أنظمة الطاقة الشمسية بجودة عالمية.">
+        content=" القحطاني المدينة  الشمسية - الخبراء في تصميم وتركيب وصيانة أنظمة الطاقة الشمسية بجودة عالمية . ">
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -15,6 +15,8 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
     <!-- Swiper CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+    <!-- AOS CSS -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="css/style.css">
     <!-- Appwrite Web SDK -->
@@ -28,7 +30,7 @@
         <div class="container nav-container">
             <a href="#" class="logo">
                 <i class="fa-solid fa-sun"></i>
-                <span>المدينة الشمسية </span>
+                <span>القحطاني-المدينةالشمسية</span>
             </a>
             <nav class="navbar">
                 <ul class="nav-menu">
@@ -46,7 +48,7 @@
                     <span class="bar"></span>
                 </div>
             </nav>
-            <a href="#contact" class="btn btn-primary nav-btn">احصل على عرض سعر</a>
+            <a href="#contact" class="btn btn-primary nav-btn" aria-label="احصل على عرض سعر">احصل على عرض سعر</a>
         </div>
     </header>
 
@@ -55,28 +57,23 @@
         <div class="swiper hero-swiper">
             <div class="swiper-wrapper" id="dynamic-hero-slides">
                 <!-- Slides will be loaded dynamically from Appwrite -->
-                <div class="swiper-slide"
-                    style="background-image: url('https://images.unsplash.com/photo-1509391366360-2e959784a276?q=80&w=2072&auto=format&fit=crop');">
+                <div class="swiper-slide skeleton-slide">
                     <div class="hero-overlay"></div>
-                    <div class="container hero-content" style="text-align: center;">
-                        <h1 class="hero-title" style="font-size: 2.2rem; text-align: center;">جاري تحميل البانر
-                            الإعلاني...</h1>
-                        <p class="hero-subtitle" style="text-align: center;">يرجى الانتظار لحين جلب البيانات من الخادم
-                        </p>
+                    <div class="container hero-content text-center">
+                        <div class="skeleton-title"></div>
+                        <div class="skeleton-subtitle"></div>
+                        <div class="skeleton-btn"></div>
                     </div>
                 </div>
             </div>
             <!-- Add Pagination -->
             <div class="swiper-pagination"></div>
-            <!-- Add Navigation -->
-            <div class="swiper-button-next"></div>
-            <div class="swiper-button-prev"></div>
         </div>
 
         <!-- Floating Statistics -->
         <div class="hero-stats-wrapper">
             <div class="container">
-                <div class="hero-stats">
+                <div class="hero-stats" data-aos="fade-up" data-aos-delay="200">
                     <div class="stat-card glass-panel">
                         <i class="fa-solid fa-bolt stat-icon"></i>
                         <h3>+1500</h3>
@@ -89,7 +86,7 @@
                     </div>
                     <div class="stat-card glass-panel">
                         <i class="fa-solid fa-award stat-icon"></i>
-                        <h3>15 سنة</h3>
+                        <h3>20 سنة</h3>
                         <p>خبرة في المجال</p>
                     </div>
                 </div>
@@ -100,27 +97,22 @@
     <!-- Products & Projects Section (Dynamic) -->
     <section id="projects" class="services section-padding">
         <div class="container">
-            <div class="section-title text-center">
+            <div class="section-title text-center" data-aos="fade-up">
                 <span class="subtitle">منتجاتنا ومشاريعنا</span>
                 <h2>اكتشف أحدث منتجاتنا</h2>
                 <p>تصفح أحدث ألواح الطاقة الشمسية، البطاريات، والمشاريع التي قمنا بتنفيذها</p>
             </div>
 
-            <!-- Dynamic Category Filters (Shown on all screen sizes, scrollable on mobile) -->
-            <div id="category-filter-container" class="category-filter-wrapper"
-                style="display: none; margin-bottom: 40px; text-align: center;">
-                <div class="category-filter-scroll">
-                    <button id="filter-btn-all" class="filter-btn active"
-                        onclick="filterByCategory('all')">الكل</button>
-                    <!-- Other filters will be appended here dynamically -->
-                </div>
-            </div>
+
 
             <div id="dynamic-products">
                 <!-- Data will be loaded here dynamically from Appwrite -->
-                <div class="loading-spinner text-center" style="grid-column: 1 / -1; padding: 40px;">
-                    <i class="fa-solid fa-spinner fa-spin fa-3x" style="color: var(--primary-color);"></i>
-                    <p style="margin-top: 15px;">جاري جلب البيانات من القاعدة...</p>
+                <div class="loading-products text-center">
+                    <div class="skeleton-product-grid">
+                        <div class="skeleton-card"></div>
+                        <div class="skeleton-card"></div>
+                        <div class="skeleton-card"></div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -130,7 +122,7 @@
     <section id="about" class="features section-padding bg-light">
         <div class="container">
             <div class="features-content">
-                <div class="features-text">
+                <div class="features-text" data-aos="fade-left">
                     <span class="subtitle">لماذا مدينة الطاقة؟</span>
                     <h2>نحن نصنع الفارق في مجال الطاقة المتجددة</h2>
                     <p>لا نكتفي بتركيب الألواح، بل نقدم لك استشارة فنية دقيقة لضمان تحقيق أعلى عائد على استثمارك.</p>
@@ -165,11 +157,11 @@
     </section>
 
     <!-- Call to Action Section -->
-    <section class="cta section-padding">
+    <section class="cta section-padding" data-aos="zoom-in">
         <div class="container text-center">
             <h2>هل أنت مستعد للانتقال إلى الطاقة النظيفة؟</h2>
             <p>تواصل معنا اليوم وسيقوم فريقنا بتقديم دراسة جدوى مبدئية لمشروعك مجاناً.</p>
-            <a href="#contact" class="btn btn-primary btn-large">تواصل معنا الآن</a>
+            <a href="#contact" class="btn btn-primary btn-large" aria-label="تواصل معنا الآن">تواصل معنا الآن</a>
         </div>
     </section>
 
@@ -185,17 +177,17 @@
                 <p>الشركة الرائدة في مجال تقديم حلول الطاقة الشمسية المتكاملة والمستدامة للمنازل والمنشآت التجارية.</p>
 
                 <div class="social-links">
-                    <a href="https://www.facebook.com/share/17H3DNP75E/?mibextid=wwXIfr" target="_blank"
-                        title="فيسبوك"><i class="fa-brands fa-facebook-f"></i></a>
+                    <a href="https://www.facebook.com/share/17H3DNP75E/?mibextid=wwXIfr" target="_blank" title="فيسبوك"
+                        aria-label="رابط فيسبوك"><i class="fa-brands fa-facebook-f"></i></a>
 
-                    <a href="instagram://user?username=YOUR_INSTAGRAM_USERNAME" target="_blank" title="إنستغرام"><i
-                            class="fa-brands fa-instagram"></i></a>
+                    <a href="https://www.instagram.com/aiqahtani3?igsh=MTZnOGkyZXdvMmt0ZQ==" target="_blank"
+                        title="إنستغرام" aria-label="رابط إنستغرام"><i class="fa-brands fa-instagram"></i></a>
 
-                    <a href="tg://resolve?domain=YOUR_TELEGRAM_USERNAME" target="_blank" title="تليجرام"><i
-                            class="fa-brands fa-telegram"></i></a>
-
-                    <a href="https://wa.me/967781663300" target="_blank" title="واتساب"><i
+                    <a href="https://wa.me/967781663300" target="_blank" title="واتساب" aria-label="رابط واتساب"><i
                             class="fa-brands fa-whatsapp"></i></a>
+                    <a href="https://share.google/Vm71X7hz3ErBHk8k2" target="_blank">
+                        <i class="fa-solid fa-location-dot"></i>
+                    </a>
                 </div>
             </div>
 
@@ -214,7 +206,7 @@
                 <ul class="contact-info">
                     <li>
                         <a href="https://share.google/Vm71X7hz3ErBHk8k2" target="_blank">
-                            <i class="fa-solid fa-location-dot"></i> اليمن - إب _ مفرق جبله جوار محطة العمال
+                            <i class="fa-solid fa-location-dot"></i> اليمن - إب _ مفرق جبله جوار محطة البترول
                         </a>
                     </li>
 
@@ -223,6 +215,9 @@
                             <i class="fa-solid fa-phone"></i> +967781663300
                         </a>
                     </li>
+                    <li><a href="tel:+967771483300">
+                            <i class="fa-solid fa-phone"></i> +967771483300
+                        </a></li>
 
                     <li>
                         <a href="mailto:almdyntalshmsyh@gmail.com">
@@ -235,7 +230,7 @@
 
         <div class="footer-bottom">
             <div class="container">
-                <p>&copy; 2026 المدينة الشمسية. جميع الحقوق محفوظة.</p>
+                <p>&copy; 2026 القحطاني - المدينة الشمسية. جميع الحقوق محفوظة. </p>
             </div>
         </div>
     </footer>
@@ -257,8 +252,8 @@
                         style="position:static; margin-bottom:10px; display:inline-block;"></span>
                     <div id="modalPrice" class="product-price" style="margin: 15px 0;"></div>
                     <p id="modalDesc" class="product-desc" style="white-space: pre-wrap; margin-bottom: 20px;"></p>
-                    <a id="modalWhatsappBtn" href="#" target="_blank" class="btn btn-primary"
-                        style="background-color: #25D366; border-color: #25D366; display: flex; align-items: center; justify-content: center; gap: 10px;">
+                    <a id="modalWhatsappBtn" href="#" target="_blank" class="btn btn-whatsapp"
+                        aria-label="تواصل لطلب المنتج">
                         <i class="fa-brands fa-whatsapp" style="font-size: 1.5em;"></i> تواصل لطلب المنتج
                     </a>
                 </div>
@@ -268,8 +263,15 @@
 
     <!-- Swiper JS -->
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+    <!-- AOS JS -->
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
     <!-- Appwrite Config -->
     <script src="js/config.js"></script>
+    <!-- Floating WhatsApp Button -->
+    <a href="https://wa.me/message/4ZKOE77EQPJIE1" class="floating-whatsapp" target="_blank" aria-label="تواصل معنا">
+        <i class="fa-brands fa-whatsapp"></i>
+    </a>
+
     <!-- Custom JS -->
     <script src="js/main.js"></script>
 </body>

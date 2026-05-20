@@ -1,4 +1,13 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // Initialize AOS
+    if (typeof AOS !== 'undefined') {
+        AOS.init({
+            duration: 800,
+            once: true,
+            offset: 50,
+        });
+    }
+
     // Initialize Swiper dynamically
     let heroSwiper = null;
 
@@ -14,14 +23,37 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        const slideCount = document.querySelectorAll('.hero-swiper .swiper-slide').length;
-        const shouldLoop = slideCount > 1;
+        const swiperWrapper = document.querySelector('.hero-swiper .swiper-wrapper');
+        let slides = Array.from(swiperWrapper.querySelectorAll('.swiper-slide'));
+        let slideCount = slides.length;
 
+        // Fix for Swiper Loop Warning when there are too few slides
+        if (slideCount > 1 && slideCount < 4) {
+            slides.forEach(slide => {
+                const clone = slide.cloneNode(true);
+                // Ensure cloned videos are paused initially
+                const video = clone.querySelector('video');
+                if (video) video.pause();
+                swiperWrapper.appendChild(clone);
+            });
+            slideCount = document.querySelectorAll('.hero-swiper .swiper-slide').length;
+        }
+
+        const shouldLoop = slideCount > 1;
         heroSwiper = new Swiper('.hero-swiper', {
             loop: shouldLoop,
             centeredSlides: true,
-            slidesPerView: 1.15,
-            spaceBetween: 12,
+            slidesPerView: 1.3, // Reduced to show more of next/prev slides
+            spaceBetween: 0,
+            speed: 1200, // Smooth transition speed
+            effect: 'coverflow',
+            coverflowEffect: {
+                rotate: 0,
+                stretch: 0, // 0 prevents overlap so they peek from behind
+                depth: 150, // Less depth keeps them larger
+                modifier: 1,
+                slideShadows: false,
+            },
             autoplay: shouldLoop ? {
                 delay: 6000,
                 disableOnInteraction: false,
@@ -30,18 +62,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 el: '.swiper-pagination',
                 clickable: true,
             } : false,
-            navigation: shouldLoop ? {
-                nextEl: '.swiper-button-next',
-                prevEl: '.swiper-button-prev',
-            } : false,
             breakpoints: {
                 768: {
-                    slidesPerView: 1.25,
-                    spaceBetween: 20
+                    slidesPerView: 1.4,
+                    spaceBetween: 0
                 },
                 1200: {
-                    slidesPerView: 1.35,
-                    spaceBetween: 30
+                    slidesPerView: 1.5,
+                    spaceBetween: 0
                 }
             },
             on: {
@@ -77,7 +105,7 @@ document.addEventListener('DOMContentLoaded', () => {
             activeVideo.muted = true;
 
             // Pause Swiper autoplay while video is playing
-            if (swiper.autoplay) {
+            if (swiper.autoplay && swiper.autoplay.running) {
                 swiper.autoplay.stop();
             }
 
@@ -95,8 +123,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 activeVideo.dataset.hasEndedListener = 'true';
             }
         } else {
-            // No video, resume Swiper autoplay
-            if (swiper.autoplay) {
+            // No video, resume Swiper autoplay if it was stopped
+            if (swiper.autoplay && !swiper.autoplay.running) {
                 swiper.autoplay.start();
             }
         }
@@ -325,7 +353,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const buttonHtml = (slide.category && slide.category.trim() !== '') ? `
                             <div class="hero-buttons" style="justify-content: center; display: flex; width: 100%;">
                                 <button class="btn btn-primary" onclick="scrollAndFilterCategory('${slide.category}')" style="display: inline-flex; align-items: center; gap: 8px;">
-                                    <span>المزيد: ${slide.category}</span>
+                                    <span>${slide.category}</span>
                                     <i class="fa-solid fa-arrow-left"></i>
                                 </button>
                             </div>
@@ -356,10 +384,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="swiper-slide" style="background-image: url('https://images.unsplash.com/photo-1509391366360-2e959784a276?q=80&w=2072&auto=format&fit=crop');">
                     <div class="hero-overlay"></div>
                     <div class="container hero-content" style="text-align: center; display: flex; flex-direction: column; align-items: center;">
-                        <h1 class="hero-title" style="text-align: center;">مدينة الطاقة الشمسية</h1>
+                        <h1 class="hero-title" style="text-align: center;">القحطاني - المدينة الشمسية</h1>
                         <p class="hero-subtitle" style="text-align: center; max-width: 800px;">نقدم لك أفضل حلول وأنظمة الطاقة الشمسية المبتكرة لتوفير فواتيرك وحماية البيئة.</p>
                         <div class="hero-buttons" style="justify-content: center; display: flex;">
-                            <a href="#projects" class="btn btn-primary">تصفح منتجاتنا</a>
+                            <a href="#projects" class="btn btn-primary" aria-label="تصفح منتجاتنا">تصفح منتجاتنا</a>
                         </div>
                     </div>
                 </div>
@@ -607,6 +635,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     const card = document.createElement('div');
                     card.className = 'product-card';
+                    // We removed data-aos="fade-up" here because it causes the products to stay hidden (opacity: 0) 
+                    // if AOS fails to calculate their offsets dynamically before images load.
+                    card.style.animation = "modalAppear 0.5s ease forwards"; // Add a simple CSS fade-in instead
                     card.innerHTML = `
                         <div class="product-img-wrapper">
                             <span class="product-category">${doc.category || 'عام'}</span>
@@ -634,6 +665,11 @@ document.addEventListener('DOMContentLoaded', () => {
             // Trigger video observer to watch newly loaded product videos
             if (typeof window.observeAllVideos === 'function') {
                 window.observeAllVideos();
+            }
+
+            // Refresh AOS for newly added elements
+            if (typeof AOS !== 'undefined') {
+                AOS.refresh();
             }
         };
 
@@ -736,12 +772,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // WhatsApp Message
         const whatsappNumber = "+967781663300";
-        const productInfo = `السلام عليكم ورحمة الله، أرغب في الاستفسار عن منتج:
+        let mainMediaUrl = '';
+        if (product.media && product.media.length > 0) {
+            mainMediaUrl = product.media[0];
+        }
+        
+        let productInfo = `السلام عليكم ورحمة الله، أرغب في الاستفسار عن منتج:
 - الاسم: ${product.name}
 - القسم: ${product.category || 'غير محدد'}
 - النوع: ${product.type || 'غير محدد'}
-- السعر: ${product.newPrice ? product.newPrice + ' ريال' : 'غير محدد'}
-- الوصف الكامل: ${product.description || 'لا يوجد'}`;
+- السعر: ${product.newPrice ? product.newPrice + ' ريال' : 'غير محدد'}`;
+
+        if (mainMediaUrl) {
+            productInfo += `\n- رابط الصورة/الفيديو: ${mainMediaUrl}`;
+        }
+        
+        productInfo += `\n- الوصف الكامل: ${product.description || 'لا يوجد'}`;
 
         const encodedText = encodeURIComponent(productInfo);
         modalWhatsappBtn.href = `https://wa.me/${whatsappNumber}?text=${encodedText}`;
@@ -750,6 +796,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Push modal state into history to intercept the hardware back button
         history.pushState({ modalOpen: true }, "");
+        
+        // Hide floating whatsapp
+        const floatingBtn = document.querySelector('.floating-whatsapp');
+        if (floatingBtn) floatingBtn.style.display = 'none';
     };
 
     // Close Modal Logic (including hardware back button support)
@@ -761,6 +811,10 @@ document.addEventListener('DOMContentLoaded', () => {
             modal.classList.remove('active');
             const modalMainVideo = document.getElementById('modalMainVideo');
             if (modalMainVideo) modalMainVideo.pause();
+            
+            // Show floating whatsapp
+            const floatingBtn = document.querySelector('.floating-whatsapp');
+            if (floatingBtn) floatingBtn.style.display = 'flex';
         }
     }
 
