@@ -1,5 +1,5 @@
 // Initialize Appwrite Client using config from config.js
-const { Client, Databases, Storage, ID } = Appwrite;
+const { Client, Databases, Storage, ID, Account } = Appwrite;
 
 const client = new Client()
     .setEndpoint(APPWRITE_CONFIG.ENDPOINT)
@@ -7,6 +7,7 @@ const client = new Client()
 
 const databases = new Databases(client);
 const storage = new Storage(client);
+const account = new Account(client);
 
 // DOM Elements - Products
 const addItemForm = document.getElementById('addItemForm');
@@ -768,15 +769,100 @@ window.deleteSlide = async function(slideId) {
 };
 
 // Global admin logout
-window.logoutAdmin = function() {
+window.logoutAdmin = async function() {
     if (confirm('هل أنت متأكد من تسجيل الخروج؟')) {
-        alert('تم تسجيل الخروج بنجاح.');
-        window.location.href = 'index.html';
+        try {
+            await account.deleteSession('current');
+            alert('تم تسجيل الخروج بنجاح.');
+            checkAuth(); // Switch display states
+        } catch (error) {
+            console.error("Logout failed:", error);
+            alert('حدث خطأ أثناء تسجيل الخروج. سيتم توجيهك إلى الصفحة الرئيسية.');
+            window.location.href = 'index.html';
+        }
     }
 };
 
-// Initial fetch
-fetchItems();
+// Check authentication status
+async function checkAuth() {
+    try {
+        const session = await account.get();
+        console.log("Authenticated user session active:", session);
+        
+        // Hide login card wrapper, show admin dashboard panel
+        document.getElementById('loginContainer').style.display = 'none';
+        document.getElementById('adminContainer').style.display = 'flex';
+        
+        // Fetch products only after validating authentication status
+        fetchItems();
+    } catch (error) {
+        console.log("No active admin session:", error);
+        
+        // Show login card wrapper, hide admin dashboard panel
+        document.getElementById('loginContainer').style.display = 'flex';
+        document.getElementById('adminContainer').style.display = 'none';
+    }
+}
+
+// Login Form submission handler
+const loginForm = document.getElementById('loginForm');
+if (loginForm) {
+    loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const email = document.getElementById('loginEmail').value;
+        const password = document.getElementById('loginPassword').value;
+        
+        const loginSubmitBtn = document.getElementById('loginSubmitBtn');
+        const loginSpinner = loginSubmitBtn.querySelector('.login-spinner');
+        const loginText = loginSubmitBtn.querySelector('span');
+        const loginError = document.getElementById('loginError');
+        const loginErrorText = loginError.querySelector('span');
+        
+        // Reset validation states
+        loginError.style.display = 'none';
+        loginErrorText.innerText = '';
+        
+        // Disable button & animate spinner
+        loginSubmitBtn.disabled = true;
+        loginSpinner.style.display = 'inline-block';
+        loginText.innerText = 'جاري التحقق...';
+        
+        try {
+            // Establish session using Email and Password
+            await account.createEmailSession(email, password);
+            console.log("Login session established successfully");
+            
+            loginForm.reset();
+            
+            // Re-verify authentication state to unlock layout
+            await checkAuth();
+            
+        } catch (error) {
+            console.error("Login verification failed:", error);
+            loginError.style.display = 'flex';
+            
+            // Friendly Arabic explanations of Appwrite errors
+            if (error.type === 'user_invalid_credentials' || error.code === 401) {
+                loginErrorText.innerText = 'البريد الإلكتروني أو كلمة المرور غير صحيحة.';
+            } else if (error.type === 'user_blocked') {
+                loginErrorText.innerText = 'هذا الحساب محظور حالياً من قبل الإدارة.';
+            } else if (error.code === 0 || error.message.includes('Network')) {
+                loginErrorText.innerText = 'فشل الاتصال بخادم Appwrite. يرجى التحقق من اتصالك بالإنترنت.';
+            } else {
+                loginErrorText.innerText = 'حدث خطأ: ' + error.message;
+            }
+        } finally {
+            // Re-enable interactive submit button
+            loginSubmitBtn.disabled = false;
+            loginSpinner.style.display = 'none';
+            loginText.innerText = 'تسجيل الدخول';
+        }
+    });
+}
+
+// Run auth check on initialization
+checkAuth();
 
 // Handle mobile hardware back button to redirect directly to the home screen (index.html)
 window.history.pushState(null, "", window.location.href);

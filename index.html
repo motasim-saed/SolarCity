@@ -30,12 +30,20 @@
         <div class="container nav-container">
             <a href="#" class="logo">
                 <i class="fa-solid fa-sun"></i>
-                <span>القحطاني-المدينةالشمسية</span>
+                <span>القحطاني -المدينةالشمسية</span>
             </a>
             <nav class="navbar">
                 <ul class="nav-menu">
                     <li><a href="#home" class="nav-link active">الرئيسية</a></li>
                     <li><a href="#about" class="nav-link">من نحن</a></li>
+                    <li class="dropdown">
+                        <a href="#" class="nav-link dropdown-toggle" id="products-dropdown-toggle">
+                            منتجاتنا <i class="fa-solid fa-chevron-down" style="font-size: 0.75rem; margin-right: 5px;"></i>
+                        </a>
+                        <ul class="dropdown-menu" id="categories-dropdown-menu">
+                            <!-- Dynamic categories will be injected here -->
+                        </ul>
+                    </li>
                     <!-- Dynamic categories nav items will be injected here -->
                     <li><a href="#projects" class="nav-link">مشاريعنا</a></li>
                     <li><a href="#contact" class="nav-link">تواصل معنا</a></li>
@@ -48,7 +56,7 @@
                     <span class="bar"></span>
                 </div>
             </nav>
-            <a href="#contact" class="btn btn-primary nav-btn" aria-label="احصل على عرض سعر">احصل على عرض سعر</a>
+
         </div>
     </header>
 

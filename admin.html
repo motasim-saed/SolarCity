@@ -15,7 +15,55 @@
 </head>
 <body>
 
-    <div class="admin-container">
+    <!-- Glowing Background Orbs for Login Page -->
+    <div id="loginContainer" class="login-wrapper" style="display: none;">
+        <div class="login-orb-1"></div>
+        <div class="login-orb-2"></div>
+        
+        <div class="login-card glass-panel">
+            <div class="login-header">
+                <i class="fa-solid fa-solar-panel login-brand-icon"></i>
+                <h2>لوحة التحكم</h2>
+                <p>تسجيل الدخول إلى نظام الإدارة</p>
+            </div>
+            
+            <form id="loginForm" class="login-form">
+                <div id="loginError" class="login-error" style="display: none;">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    <span></span>
+                </div>
+                
+                <div class="form-group">
+                    <label for="loginEmail">البريد الإلكتروني</label>
+                    <div class="input-with-icon">
+                        <i class="fa-solid fa-envelope input-icon"></i>
+                        <input type="email" id="loginEmail" required placeholder="example@solarcity.com">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="loginPassword">كلمة المرور</label>
+                    <div class="input-with-icon">
+                        <i class="fa-solid fa-lock input-icon"></i>
+                        <input type="password" id="loginPassword" required placeholder="••••••••">
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn btn-primary login-btn" id="loginSubmitBtn">
+                    <span>تسجيل الدخول</span>
+                    <i class="fa-solid fa-spinner fa-spin login-spinner" style="display: none;"></i>
+                </button>
+            </form>
+            
+            <div class="login-footer">
+                <a href="index.html" class="back-to-site">
+                    <i class="fa-solid fa-arrow-right"></i> العودة للموقع الرئيسي
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="admin-container" id="adminContainer" style="display: none;">
         <!-- Top AppBar -->
         <header class="appbar">
             <div class="appbar-brand">

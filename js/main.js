@@ -43,33 +43,46 @@ document.addEventListener('DOMContentLoaded', () => {
         heroSwiper = new Swiper('.hero-swiper', {
             loop: shouldLoop,
             centeredSlides: true,
-            slidesPerView: 1.3, // Reduced to show more of next/prev slides
+            slidesPerView: 'auto',
             spaceBetween: 0,
-            speed: 1200, // Smooth transition speed
+            speed: 1200,
             effect: 'coverflow',
             coverflowEffect: {
-                rotate: 0,
-                stretch: 0, // 0 prevents overlap so they peek from behind
-                depth: 150, // Less depth keeps them larger
-                modifier: 1,
-                slideShadows: false,
+                rotate: 15,
+                stretch: 0,
+                depth: 300,
+                modifier: 1.2,
+                slideShadows: true,
             },
             autoplay: shouldLoop ? {
-                delay: 6000,
+                delay: 5000,
                 disableOnInteraction: false,
+                pauseOnMouseEnter: true,
             } : false,
             pagination: shouldLoop ? {
                 el: '.swiper-pagination',
                 clickable: true,
             } : false,
             breakpoints: {
-                768: {
-                    slidesPerView: 1.4,
-                    spaceBetween: 0
+                // جوال صغير
+                480: {
+                    spaceBetween: 0,
                 },
-                1200: {
-                    slidesPerView: 1.5,
-                    spaceBetween: 0
+                // جهاز لوحي صغير
+                700: {
+                    spaceBetween: 0,
+                },
+                // جهاز لوحي كبير
+                900: {
+                    spaceBetween: 0,
+                },
+                // لابتوب - ثلاث بطاقات كاملة
+                1100: {
+                    spaceBetween: 0,
+                },
+                // شاشة كبيرة - ثلاثة بطاقات مع مسافة أوسع
+                1400: {
+                    spaceBetween: 0,
                 }
             },
             on: {
@@ -191,10 +204,24 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         // Close mobile menu when clicking on a link
-        document.querySelectorAll(".nav-link").forEach(n => n.addEventListener("click", () => {
+        document.querySelectorAll(".nav-link:not(.dropdown-toggle), .dropdown-item").forEach(n => n.addEventListener("click", () => {
             hamburger.classList.remove("active");
             navMenu.classList.remove("active");
+            const dropdown = document.querySelector('.dropdown');
+            if (dropdown) dropdown.classList.remove('active');
         }));
+
+        // Toggle dropdown on mobile click
+        const dropdownToggle = document.getElementById('products-dropdown-toggle');
+        if (dropdownToggle) {
+            dropdownToggle.addEventListener('click', function(e) {
+                if (window.innerWidth <= 768) {
+                    e.preventDefault();
+                    const dropdown = this.closest('.dropdown');
+                    if (dropdown) dropdown.classList.toggle('active');
+                }
+            });
+        }
     }
 
     // Sticky Header Effect
@@ -473,25 +500,32 @@ document.addEventListener('DOMContentLoaded', () => {
                     return indexA - indexB;
                 });
 
-                // Remove existing dynamic categories from navbar if any
-                document.querySelectorAll(".dynamic-cat-nav-item").forEach(item => item.remove());
-
-                // Inject dynamic category links in the navbar right after "من نحن"
-                const aboutLink = document.querySelector('.nav-menu a[href="#about"]');
-                if (aboutLink) {
-                    const aboutLi = aboutLink.parentElement;
-                    let referenceNode = aboutLi;
+                // Clear and populate static categories dropdown menu
+                const dropdownMenu = document.getElementById('categories-dropdown-menu');
+                if (dropdownMenu) {
+                    dropdownMenu.innerHTML = '';
+                    
+                    const categoryIcons = {
+                        "ألواح شمسية": "fa-solid fa-solar-panel",
+                        "بطاريات": "fa-solid fa-battery-three-quarters",
+                        "محولات": "fa-solid fa-repeat",
+                        "منظومات شمسية": "fa-solid fa-network-wired",
+                        "أدوات كهربائية": "fa-solid fa-plug",
+                        "أدوات منزلية": "fa-solid fa-house-laptop",
+                        "مشاريع منجزة": "fa-solid fa-clipboard-check",
+                        "عام": "fa-solid fa-box"
+                    };
 
                     activeCategories.forEach(cat => {
                         const sectionId = categoryIds[cat] || "cat-" + encodeURIComponent(cat).replace(/%/g, "");
+                        const iconClass = categoryIcons[cat] || "fa-solid fa-sun";
 
                         const newLi = document.createElement("li");
-                        newLi.className = "dynamic-cat-nav-item";
-
+                        
                         const navLink = document.createElement("a");
                         navLink.href = `#${sectionId}`;
-                        navLink.className = "nav-link";
-                        navLink.innerText = cat;
+                        navLink.className = "dropdown-item";
+                        navLink.innerHTML = `<i class="${iconClass}"></i> <span>${cat}</span>`;
 
                         // Close mobile menu and smooth scroll when clicked
                         navLink.addEventListener('click', function (e) {
@@ -500,9 +534,13 @@ document.addEventListener('DOMContentLoaded', () => {
                             // Close hamburger menu on mobile
                             const hamburger = document.querySelector(".hamburger");
                             const navMenu = document.querySelector(".nav-menu");
+                            const dropdown = document.querySelector(".dropdown");
                             if (hamburger && navMenu) {
                                 hamburger.classList.remove("active");
                                 navMenu.classList.remove("active");
+                            }
+                            if (dropdown) {
+                                dropdown.classList.remove("active");
                             }
 
                             // Smooth Scroll directly to the category section
@@ -518,8 +556,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         });
 
                         newLi.appendChild(navLink);
-                        referenceNode.parentNode.insertBefore(newLi, referenceNode.nextSibling);
-                        referenceNode = newLi; // Update reference so they appear in correct sequence
+                        dropdownMenu.appendChild(newLi);
                     });
                 }
 

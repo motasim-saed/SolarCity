@@ -246,6 +246,80 @@ h1, h2, h3, h4, h5, h6 {
     color: var(--white);
 }
 
+/* Dropdown styles for header navbar */
+.dropdown {
+    position: relative;
+}
+
+.dropdown-toggle {
+    display: inline-flex !important;
+    align-items: center;
+    gap: 5px;
+    cursor: pointer;
+}
+
+.dropdown-menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    transform: translateY(15px);
+    background: rgba(22, 27, 34, 0.96);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    border-radius: 14px;
+    min-width: 240px;
+    padding: 10px 0;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    z-index: 1000;
+}
+
+.dropdown:hover .dropdown-menu {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(10px);
+}
+
+.dropdown-item {
+    display: flex !important;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 20px;
+    color: var(--text-color);
+    font-size: 0.95rem;
+    font-weight: 600;
+    transition: var(--transition);
+    text-align: right;
+    width: 100%;
+    cursor: pointer;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.dropdown-item:last-child {
+    border-bottom: none;
+}
+
+.dropdown-item i {
+    color: var(--primary-color);
+    font-size: 1rem;
+    width: 20px;
+    text-align: center;
+    transition: var(--transition);
+}
+
+.dropdown-item:hover {
+    background: rgba(252, 163, 17, 0.1);
+    color: var(--primary-color) !important;
+    padding-right: 25px;
+}
+
+.dropdown-item:hover i {
+    transform: scale(1.1);
+}
+
 .hamburger {
     display: none;
     cursor: pointer;
@@ -263,167 +337,233 @@ h1, h2, h3, h4, h5, h6 {
 
 /* 
     ==================================================
-    Hero Section
+    Hero Section  — Card-Coverflow Style
     ==================================================
 */
 .hero {
     position: relative;
     width: 100%;
+    /* Removed min-height: 100vh to eliminate empty space */
     background-color: var(--bg-color);
+    display: flex;
+    flex-direction: column;
+    /* لا نضع overflow:hidden هنا حتى تظهر البطاقات الجانبية */
+    overflow: visible;
 }
 
+/* ── Swiper wrapper ── */
 .hero-swiper {
     width: 100%;
-    height: 100vh;
-    padding-top: 90px;
-    padding-bottom: 30px;
+    padding-top: 110px;         /* clear fixed header */
+    padding-bottom: 40px;       /* tighter room for pagination dots */
     box-sizing: border-box;
-    overflow: hidden;
+    overflow: visible !important; /* let side cards peek out */
+    perspective: 1500px;
 }
 
+/* ── All slides: blurred & dimmed ── */
 .swiper-slide {
+    width: 82% !important; /* Center slide takes 82%, making sides clearly visible */
+    max-width: 800px !important; /* Cap width on large screens */
     background-position: center;
     background-size: cover;
     background-repeat: no-repeat;
     display: flex;
-    align-items: center;
-    border-radius: 24px;
+    align-items: flex-end;
+    justify-content: center;
+    border-radius: 28px;
     overflow: hidden;
-    height: calc(100vh - 160px) !important;
+    position: relative;
+
+    /* ارتفاع البطاقة */
+    height: clamp(300px, 60vh, 580px) !important;
+
+    /* البطاقات غير النشطة: مصغّرة ومعتمة */
     opacity: 0.4;
-    transition: opacity 1.2s ease, filter 1.2s ease;
-    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    filter: blur(5px) brightness(0.5);
+    filter: blur(4px) brightness(0.5) grayscale(30%);
+    transition: opacity 1.2s cubic-bezier(0.25, 1, 0.5, 1), filter 1.2s cubic-bezier(0.25, 1, 0.5, 1),
+                box-shadow 1.2s cubic-bezier(0.25, 1, 0.5, 1), border-color 1.2s cubic-bezier(0.25, 1, 0.5, 1);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transform-origin: center center;
+    will-change: filter, opacity, transform;
 }
 
+/* ── البطاقة النشطة (المركزية) ── */
 .swiper-slide-active {
-    opacity: 1;
-    filter: blur(0) brightness(1);
-    border: 2px solid var(--primary-color) !important;
+    opacity: 1 !important;
+    filter: blur(0) brightness(1) grayscale(0%) !important;
+    border: 1px solid var(--primary-color) !important;
+    box-shadow:
+        0 0 0 2px rgba(252, 163, 17, 0.15),
+        0 25px 65px rgba(0, 0, 0, 0.8) !important;
+    z-index: 3 !important;
 }
 
-/* Custom Swiper Styling */
-.swiper-button-next,
-.swiper-button-prev {
-    color: var(--primary-color) !important;
-    background: rgba(13, 17, 23, 0.6) !important;
-    backdrop-filter: blur(5px);
-    -webkit-backdrop-filter: blur(5px);
-    width: 48px !important;
-    height: 48px !important;
-    border-radius: 50%;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    transition: all 0.3s ease !important;
-    z-index: 15;
+/* ── Slide — gradient overlay so text is always readable ── */
+.hero-overlay {
+    position: absolute;
+    inset: 0;
+    /* bottom-heavy dark gradient like the reference */
+    background: linear-gradient(
+        to top,
+        rgba(10, 10, 15, 0.95) 0%,
+        rgba(10, 10, 15, 0.5) 45%,
+        rgba(10, 10, 15, 0.1) 100%
+    );
+    z-index: 1;
+    border-radius: inherit;
+    transition: background 1.2s cubic-bezier(0.25, 1, 0.5, 1);
 }
-.swiper-button-next:hover,
-.swiper-button-prev:hover {
-    background: var(--primary-color) !important;
-    color: var(--text-dark) !important;
-    transform: scale(1.1);
+
+.swiper-slide-active .hero-overlay {
+    background: linear-gradient(
+        to top,
+        rgba(10, 10, 15, 0.98) 0%,
+        rgba(10, 10, 15, 0.3) 50%,
+        transparent 100%
+    );
 }
-.swiper-button-next::after,
-.swiper-button-prev::after {
-    font-size: 1.2rem !important;
+
+/* ── Slide content (title + button) sits above overlay ── */
+.hero-content {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    padding: 28px 28px 32px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    max-width: 100%;
+}
+
+.hero-title {
+    font-size: clamp(1.5rem, 3.5vw, 2.8rem);
     font-weight: 800;
+    color: var(--white);
+    margin-bottom: 16px;
+    text-shadow:
+        2px 2px 0 rgba(252, 163, 17, 0.45),
+        0 4px 20px rgba(0, 0, 0, 0.8);
+    letter-spacing: 0.5px;
+    line-height: 1.25;
+    /* Start hidden and animate in when slide becomes active */
+    opacity: 0;
+    transform: translateY(30px) scale(0.9);
+    transition: opacity 0.8s cubic-bezier(0.25, 1, 0.5, 1) 0.3s, transform 0.8s cubic-bezier(0.25, 1, 0.5, 1) 0.3s, text-shadow 0.8s ease;
+}
+
+.swiper-slide-active .hero-title {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    text-shadow:
+        0 0 10px rgba(252, 163, 17, 0.8),
+        0 4px 25px rgba(0, 0, 0, 0.9);
+}
+
+.hero-subtitle {
+    display: none; /* Keep layout clean like the reference */
+}
+
+.hero-buttons {
+    margin-bottom: 0;
+    display: flex;
+    justify-content: center;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.8s cubic-bezier(0.25, 1, 0.5, 1) 0.5s, transform 0.8s cubic-bezier(0.25, 1, 0.5, 1) 0.5s;
+}
+
+.swiper-slide-active .hero-buttons {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Button style matching the reference golden rounded button */
+.hero-buttons .btn {
+    background: linear-gradient(135deg, var(--primary-color), #ffcf5c);
+    color: var(--text-dark);
+    font-size: 0.95rem;
+    font-weight: 700;
+    padding: 11px 26px;
+    border-radius: 50px;
+    box-shadow: 0 4px 18px rgba(252, 163, 17, 0.45);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    letter-spacing: 0.3px;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.hero-buttons .btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 28px rgba(252, 163, 17, 0.65);
+}
+
+/* ── Swiper pagination dots ── */
+.swiper-pagination {
+    bottom: 5px !important;
 }
 
 .swiper-pagination-bullet {
-    background: rgba(255, 255, 255, 0.3) !important;
+    background: rgba(255, 255, 255, 0.35) !important;
     opacity: 1 !important;
+    width: 9px !important;
+    height: 9px !important;
+    transition: all 0.3s ease !important;
 }
 
 .swiper-pagination-bullet-active {
     background: var(--primary-color) !important;
-    width: 24px !important;
-    border-radius: 4px !important;
-    transition: width 0.3s ease !important;
+    width: 26px !important;
+    border-radius: 5px !important;
+    transition: width 0.35s ease !important;
 }
 
+/* ── Arrow buttons (hidden — no arrows in reference) ── */
+.swiper-button-next,
+.swiper-button-prev {
+    display: none !important;
+}
+
+/* ── Stats bar below slider ── */
 .hero-stats-wrapper {
-    position: absolute;
-    bottom: 40px;
-    left: 0;
     width: 100%;
+    padding: 0 0 30px;
     z-index: 10;
-}
-
-.hero-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(to right, rgba(13, 17, 23, 0.9) 0%, rgba(13, 17, 23, 0.5) 100%);
-    z-index: 1;
-}
-
-.hero-content {
-    position: relative;
-    z-index: 2;
-    max-width: 800px;
-}
-
-.hero-title {
-    font-size: 4rem;
-    margin-bottom: 20px;
-    animation: fadeInUp 1s ease forwards;
-    opacity: 0;
-}
-
-.hero-title span {
-    color: var(--primary-color);
-}
-
-.hero-subtitle {
-    font-size: 1.2rem;
-    margin-bottom: 40px;
-    color: #ccc;
-    animation: fadeInUp 1s ease forwards 0.3s;
-    opacity: 0;
-}
-
-.hero-buttons {
-    display: flex;
-    gap: 20px;
-    margin-bottom: 60px;
-    animation: fadeInUp 1s ease forwards 0.6s;
-    opacity: 0;
-}
-
-.hero-buttons i {
-    margin-right: 8px;
+    background: transparent;
 }
 
 .hero-stats {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 20px;
-    animation: fadeInUp 1s ease forwards 0.9s;
+    gap: 16px;
+    animation: fadeInUp 1s ease forwards 0.4s;
     opacity: 0;
 }
 
 .stat-card {
-    padding: 20px;
+    padding: 18px 12px;
     text-align: center;
     transition: var(--transition);
+    border-radius: 16px;
 }
 
 .stat-card:hover {
-    transform: translateY(-10px);
+    transform: translateY(-8px);
     border-color: rgba(252, 163, 17, 0.5);
 }
 
 .stat-icon {
-    font-size: 2rem;
+    font-size: 1.8rem;
     color: var(--primary-color);
-    margin-bottom: 10px;
+    margin-bottom: 8px;
 }
 
 .stat-card h3 {
-    font-size: 2rem;
-    margin-bottom: 5px;
+    font-size: 1.8rem;
+    margin-bottom: 4px;
     color: var(--primary-color);
 }
 
@@ -438,13 +578,74 @@ h1, h2, h3, h4, h5, h6 {
     }
 }
 
+/* ── Responsive ── */
+@media (max-width: 768px) {
+    .hero-swiper {
+        padding-top: 90px;
+        padding-bottom: 35px;
+    }
+
+    .swiper-slide {
+        width: 75% !important; /* Makes side slides visible */
+        height: clamp(260px, 55vh, 420px) !important;
+        border-radius: 22px;
+    }
+
+    .hero-content {
+        padding: 20px 18px 24px;
+    }
+
+    .hero-title {
+        font-size: clamp(1.2rem, 5vw, 1.8rem);
+        margin-bottom: 12px;
+    }
+
+    .hero-buttons .btn {
+        font-size: 0.88rem;
+        padding: 9px 20px;
+    }
+
+    .hero-stats {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+    }
+
+    .stat-card h3 {
+        font-size: 1.3rem;
+    }
+
+    .stat-card p {
+        font-size: 0.8rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .swiper-slide {
+        width: 70% !important; /* Even narrower on very small screens to ensure side slides peek */
+        height: clamp(220px, 50vh, 360px) !important;
+        border-radius: 18px;
+    }
+
+    .hero-stats {
+        gap: 8px;
+    }
+
+    .stat-icon {
+        font-size: 1.4rem;
+    }
+
+    .stat-card h3 {
+        font-size: 1.1rem;
+    }
+}
+
 .services {
     background-color: var(--bg-light);
 }
 
 .products-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 30px;
 }
 
@@ -847,6 +1048,42 @@ h1, h2, h3, h4, h5, h6 {
     .nav-link {
         font-size: 1rem !important;
         padding: 8px 0;
+    }
+    
+    /* Mobile dropdown styling inside the sidebar */
+    .dropdown-menu {
+        position: static !important;
+        opacity: 1 !important;
+        visibility: visible !important;
+        transform: none !important;
+        background: rgba(255, 255, 255, 0.03) !important;
+        box-shadow: none !important;
+        border: none !important;
+        border-radius: 10px !important;
+        padding: 5px 0 !important;
+        min-width: 100% !important;
+        margin-top: 5px !important;
+        display: none !important;
+        transition: none !important;
+    }
+    
+    .dropdown.active .dropdown-menu {
+        display: block !important;
+    }
+    
+    .dropdown-item {
+        padding: 10px 24px !important;
+        font-size: 0.9rem !important;
+        justify-content: center !important;
+        border-bottom: none !important;
+    }
+    
+    .dropdown-toggle i {
+        transition: transform 0.3s ease !important;
+    }
+    
+    .dropdown.active .dropdown-toggle i {
+        transform: rotate(180deg) !important;
     }
     
     .nav-btn {
